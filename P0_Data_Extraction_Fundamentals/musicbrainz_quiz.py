@@ -82,25 +82,25 @@ def main():
     # for t in release_titles:
     #     print(t)
 
-    ame_query = query_by_name(ARTIST_URL, query_type["simple"], "First Aid Kit")
+    name_query = query_by_name(ARTIST_URL, query_type["simple"], "First Aid Kit")
     name_results = [artist["name"] for artist in name_query["artists"] if artist["name"] == "First Aid Kit"]    
-    print "First Aid Kit occurrences: ", len(name_results)    
+    print("First Aid Kit occurrences: ", len(name_results)) 
 
-    area_query = query_by_name(ARTIST_URL, query_type["simple"], "Queen")
-    queen_begin_area = area_query["artists"][0]["begin-area"]["name"]
-    print "Queen begin area is: ", queen_begin_area
+    # area_query = query_by_name(ARTIST_URL, query_type["simple"], "Queen")
+    # queen_begin_area = area_query["artists"][0]["begin_area"]["name"]
+    # print("Queen begin area is: ", queen_begin_area)
      
-    beatles_query = query_by_name(ARTIST_URL, query_type["simple"], "Beatles")
-    aliases = [alias["name"] for alias in beatles_query["artists"][0]["aliases"] if alias["locale"] == "es"]
-    print "Beatles Spanish alias is: ", aliases
+    # beatles_query = query_by_name(ARTIST_URL, query_type["simple"], "Beatles")
+    # aliases = [alias["name"] for alias in beatles_query["artists"][0]["aliases"] if alias["locale"] == "es"]
+    # print("Beatles Spanish alias is: ", aliases)
 
     nirvana_query = query_by_name(ARTIST_URL, query_type["simple"], "Nirvana")
     disambiguation = nirvana_query["artists"][0]["disambiguation"]
-    print "Nirva disambigution:  ", disambiguation
+    print("Nirva disambigution: ", disambiguation)
 
     one_direction_query = query_by_name(ARTIST_URL, query_type["simple"], "One Direction")
     form_date = one_direction_query["artists"][0]["life-span"]["begin"]
-    print "One Direction was formed in: ", form_date
+    print("One Direction was formed in: ", form_date)
 
 
 if __name__ == '__main__':
