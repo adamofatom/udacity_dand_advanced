@@ -61,8 +61,12 @@
 
 
 **REFERENCE**:
+[0][Course Materials](https://www.udacity.com/wiki/ud032#!#datasets-used-in-this-course)
 
 [1][Requests](http://requests.readthedocs.io/en/latest/user/install/)
+
 [2][xlutils (xlrd/xlwd)](https://pypi.python.org/pypi/xlutils)
+
 [3][BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup)
+
 [4][PyMongo](http://api.mongodb.org/python/current/installation.html)
