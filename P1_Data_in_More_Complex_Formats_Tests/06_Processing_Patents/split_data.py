@@ -35,7 +35,7 @@ def split_file(filename):
             writer.write(line)
         writer.close()
 
-# from mentor
+# #  from mentor
 # def split_file(filename):
 #     with open(filename) as infile:
 #         n = -1 # 由于第一次遇到 '<?xml' 时会关闭文件，导致跳空一次
