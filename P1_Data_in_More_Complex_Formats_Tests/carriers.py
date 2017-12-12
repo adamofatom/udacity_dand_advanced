@@ -18,14 +18,15 @@ only. You will not be able to to actually use it from within the Udacity web UI.
 from bs4 import BeautifulSoup
 html_page = "options.html"
 
-
 def extract_carriers(page):
     data = []
 
     with open(page, "r") as html:
         # do something here to find the necessary values
         soup = BeautifulSoup(html, "lxml")
-
+        for text in soup.find(id="CarrierList").find_all("option"):
+            if len(text['value']) == 2:
+                data.append(text['value'])   
     return data
 
 
