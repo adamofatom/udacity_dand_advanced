@@ -40,12 +40,34 @@ FIELDS = ["name", "timeZone_label", "utcOffset", "homepage", "governmentType_lab
           "maximumElevation", "minimumElevation", "populationDensity",
           "wgs84_pos#lat", "wgs84_pos#long", "areaLand", "areaMetro", "areaUrban"]
 
+
 def audit_file(filename, fields):
     fieldtypes = {}
-
     # YOUR CODE HERE
-
-
+    for field in fields:
+        fieldtypes[field] = set()  # 生成索引为集合形式
+    with open(filename, 'r') as f:
+        reader = csv.DictReader(f)
+        for i in range(3):  # 跳过前3行
+            j = reader.next()
+        for row in reader:
+            for field in fields:
+                value = row[field]
+                if value == 'NULL' or value == '':
+                    fieldtypes[field].add(type(None))
+                elif value.startswith('{'):
+                    fieldtypes[field].add(list)
+                else:
+                    try:
+                        int(value)
+                        fieldtypes[field].add(int)
+                    except ValueError:
+                        try:
+                            float(value)
+                            fieldtypes[field].add(float)
+                        except ValueError:
+                            fieldtypes[field].add(str)
+            
     return fieldtypes
 
 
