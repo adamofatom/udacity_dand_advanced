@@ -43,7 +43,7 @@ FIELDS = ["name", "timeZone_label", "utcOffset", "homepage", "governmentType_lab
 
 def audit_file(filename, fields):
     fieldtypes = {}
-    # YOUR CODE HERE
+    # YOUR CODE 
     for field in fields:
         fieldtypes[field] = set()  # 生成索引为集合形式
     with open(filename, 'r') as f:
