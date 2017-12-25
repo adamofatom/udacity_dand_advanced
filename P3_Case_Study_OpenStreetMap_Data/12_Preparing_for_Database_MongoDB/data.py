@@ -196,20 +196,21 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
 
     # YOUR CODE HERE
     if element.tag == 'node':
-        for node in element.findall('node'):
-            node_attribs = node.attrib
-            for tag in node.findall('tag'):
-                if tag.attrib['k'].find(':'):
-                    tags[3], tags[1] = tag.split(':', 1)
-                else: 
-                    tags[3] = default_tag_type
-                tags.append(tag.attrib)
+        for field in node_attr_fields:
+            node_attribs[field]=element.attrib[field]
+        for m in element.iter("tag"):
+            for n in ['k', 'v']:
+                temp[field]=tag.attrib[field]
+            tags.append(temp)
         return {'node': node_attribs, 'node_tags': tags}
     elif element.tag == 'way':
-        for way in element.findall('way'):
-            node_attribs = way.attrib
-            for tag in way.findall('tag'):
-                tags.append(tag.attrib)
+        for field in way_attr_fields:
+            way_attribs[field]=element.attrib[field]
+        for tag in element.iter("tag"):
+            temp={}
+            for field in ['k', 'v']:
+                temp[field]=tag.attrib[field]
+            tags.append(temp)
         return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
     
 
