@@ -70,15 +70,29 @@ def process_file(filename, fields):
     data = []
     with open(filename, "r") as f:
         reader = csv.DictReader(f)
+        problemchars = re.compile(r'\W') # 匹配非数字、字母
         for i in range(3):
             l = reader.next()
 
         for line in reader:
             # YOUR CODE HERE
-            if re.match('(', line):
-                line = line.split('(')[0]
-            data.append()
-            pass
+            new_dict = {'classification': {}}
+            for field in process_fields:
+                value = line[field].strip()  # 为什么后面还要加个strip？
+                if field == 'rdf-schema#label':
+                    value = value.split('(')[0].strip()
+                if field == 'name' and (value == 'NULL' or problemchars.search(field)):
+                    value = line['rdf-schema#label']
+                if value == 'NULL':
+                    value = None
+                if field == 'synonym' and value:
+                    value = parse_array(line[field])
+                if FIELDS[field] in ['family','class','phylum','order','kingdom','genus']:
+                    new_dict['classification'][FIELDS[field]] = value
+                    continue
+                new_dict[FIELDS[field]] = value
+            data.append(new_dict)
+                
     return data
 
 
