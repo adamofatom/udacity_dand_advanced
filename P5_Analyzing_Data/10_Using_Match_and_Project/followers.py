@@ -39,12 +39,14 @@ def get_db(db_name):
 
 def make_pipeline():
     # complete the aggregation pipeline
-    pipeline = [ ]
+    pipeline = []
     dd = {
-        '$match': {
-            'user.time_zone': {'$eq': 'Brasilia'},
-            'user.statuses_count': {'$gt': 100}}
-        }
+        '$match': 
+            {
+                'user.time_zone': {'$eq': 'Brasilia'},
+                'user.statuses_count': {'$gt': 100}
+            }
+    }
     pipeline.append(dd)    
     dd = {
         '$project': 
@@ -52,19 +54,19 @@ def make_pipeline():
                 'followers': '$user.followers_count',
                 'screen_name': '$user.screen_name',
                 'tweets': '$user.statuses_count'
-             }
-        }
+            }
+    }
     pipeline.append(dd)     
     dd = {
         '$sort': 
             {
                 'followers': -1
             }
-        }
+    }
     pipeline.append(dd)         
     dd = {
         '$limit': 1
-        }
+    }
     pipeline.append(dd)
     return pipeline
 
