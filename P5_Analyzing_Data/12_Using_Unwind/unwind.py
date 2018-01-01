@@ -34,44 +34,26 @@ def make_pipeline():
     # complete the aggregation pipeline
     pipeline = []
     d = {
-        '$match':
-        {
-            'country':
-            {
-                '$eq': 'India'
-            }
-        }
+        '$match': {'country': {'$eq': 'India'}}
     }
     pipeline.append(d)
 
-    d = {
-        '$unwind': '$isPartOf'
-    }
+    d = {'$unwind': '$isPartOf'}
     pipeline.append(d)
 
     d = {
         '$group':
         {
             '_id': '$isPartOf',
-            'count':
-            {
-                '$sum': 1
-            }
+            'count': {'$sum': 1}
         }
     }
     pipeline.append(d)
 
-    d = {
-        '$sort':
-        {
-            'count': -1
-        }
-    }
+    d = {'$sort': {'count': -1}}
     pipeline.append(d)
 
-    d = {
-        '$limit': 1
-    }
+    d = {'$limit': 1}
     pipeline.append(d)
     return pipeline
 

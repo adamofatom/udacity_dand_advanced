@@ -33,8 +33,9 @@ def get_db(db_name):
 def make_pipeline():
     # complete the aggregation pipeline
     pipeline = []
-    pipeline.append({'$group': {'_id': '$source', 
-                                'count': {'$sum': 1}}})
+    pipeline.append({
+        '$group': {'_id': '$source', 'count': {'$sum': 1}}
+        })
     pipeline.append({'$sort': {'count': -1}})
     return pipeline
 
