@@ -33,7 +33,7 @@ def make_pipeline():
     d = {'$unwind': '$isPartOf'}
     pipeline.append(d)
 
-    d = {'$match': {'country': 'India', 'lon': {'gte': 75, 'lte': 80}}}
+    d = {'$match': {'country': 'India', 'lon': {'$gte': 75, '$lte': 80}}}
     pipeline.append(d)
 
     d = {'$group': {'_id': '$isPartOf', 'count': {'$sum': 1}}}
