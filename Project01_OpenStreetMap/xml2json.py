@@ -1,239 +1,168 @@
-#!/usr/bin/env python
+import xml.etree.ElementTree as ET
+import pprint
+import re
+import codecs
+import json
 
-"""xml2json.py  Convert XML to JSON
-Relies on ElementTree for the XML parsing.  This is based on
-pesterfish.py but uses a different XML->JSON mapping.
-The XML->JSON mapping is described at
-http://www.xml.com/pub/a/2006/05/31/converting-between-xml-and-json.html
-Rewritten to a command line utility by Hay Kranen < github.com/hay > with
-contributions from George Hamilton (gmh04) and Dan Brown (jdanbrown)
-XML                              JSON
-<e/>                             "e": null
-<e>text</e>                      "e": "text"
-<e name="value" />               "e": { "@name": "value" }
-<e name="value">text</e>         "e": { "@name": "value", "#text": "text" }
-<e> <a>text</a ><b>text</b> </e> "e": { "a": "text", "b": "text" }
-<e> <a>text</a> <a>text</a> </e> "e": { "a": ["text", "text"] }
-<e> text <a>text</a> </e>        "e": { "#text": "text", "a": "text" }
-This is very similar to the mapping used for Yahoo Web Services
-(http://developer.yahoo.com/common/json.html#xml).
-This is a mess in that it is so unpredictable -- it requires lots of testing
-(e.g. to see if values are lists or strings or dictionaries).  For use
-in Python this could be vastly cleaner.  Think about whether the internal
-form can be more self-consistent while maintaining good external
-characteristics for the JSON.
-Look at the Yahoo version closely to see how it works.  Maybe can adopt
-that completely if it makes more sense...
-R. White, 2006 November 6
+"""
+Your task is to wrangle the data and transform the shape of the data
+into the model we mentioned earlier. The output should be a list of dictionaries
+that look like this:
+
+{
+"id": "2406124091",
+"type: "node",
+"visible":"true",
+"created": {
+          "version":"2",
+          "changeset":"17206049",
+          "timestamp":"2013-08-03T16:43:42Z",
+          "user":"linuxUser16",
+          "uid":"1219059"
+        },
+"pos": [41.9757030, -87.6921867],
+"address": {
+          "housenumber": "5157",
+          "postcode": "60625",
+          "street": "North Lincoln Ave"
+        },
+"amenity": "restaurant",
+"cuisine": "mexican",
+"name": "La Cabana De Don Luis",
+"phone": "1 (773)-271-5176"
+}
+
+You have to complete the function 'shape_element'.
+We have provided a function that will parse the map file, and call the function with the element
+as an argument. You should return a dictionary, containing the shaped data for that element.
+We have also provided a way to save the data in a file, so that you could use
+mongoimport later on to import the shaped data into MongoDB.
+
+Note that in this exercise we do not use the 'update street name' procedures
+you worked on in the previous exercise. If you are using this code in your final
+project, you are strongly encouraged to use the code from previous exercise to
+update the street names before you save them to JSON.
+
+In particular the following things should be done:
+- you should process only 2 types of top level tags: "node" and "way"
+- all attributes of "node" and "way" should be turned into regular key/value pairs, except:
+    - attributes in the CREATED array should be added under a key "created"
+    - attributes for latitude and longitude should be added to a "pos" array,
+      for use in geospacial indexing. Make sure the values inside "pos" array are floats
+      and not strings.
+- if the second level tag "k" value contains problematic characters, it should be ignored
+- if the second level tag "k" value starts with "addr:", it should be added to a dictionary "address"
+- if the second level tag "k" value does not start with "addr:", but contains ":", you can
+  process it in a way that you feel is best. For example, you might split it into a two-level
+  dictionary like with "addr:", or otherwise convert the ":" to create a valid key.
+- if there is a second ":" that separates the type/direction of a street,
+  the tag should be ignored, for example:
+
+<tag k="addr:housenumber" v="5158"/>
+<tag k="addr:street" v="North Lincoln Avenue"/>
+<tag k="addr:street:name" v="Lincoln"/>
+<tag k="addr:street:prefix" v="North"/>
+<tag k="addr:street:type" v="Avenue"/>
+<tag k="amenity" v="pharmacy"/>
+
+  should be turned into:
+
+{...
+"address": {
+    "housenumber": 5158,
+    "street": "North Lincoln Avenue"
+}
+"amenity": "pharmacy",
+...
+}
+
+- for "way" specifically:
+
+  <nd ref="305896090"/>
+  <nd ref="1719825889"/>
+
+should be turned into
+"node_refs": ["305896090", "1719825889"]
 """
 
-import json
-import optparse
-import sys
-import os
-from collections import OrderedDict
+lower = re.compile(r'^([a-z]|_)*$')
+lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
+problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
-import xml.etree.ElementTree as ET
+CREATED = ["version", "changeset", "timestamp", "user", "uid"]
 
 
-def strip_tag(tag):
-    strip_ns_tag = tag
-    split_array = tag.split('}')
-    if len(split_array) > 1:
-        strip_ns_tag = split_array[1]
-        tag = strip_ns_tag
-    return tag
+def shape_element(element):
+    node = {}
+    if element.tag == "node" or element.tag == "way":
+        # YOUR CODE HERE
+        node['type'] = element.tag
 
+        # Parse attributes
+        for a in element.attrib:
+            if a in CREATED:
+                if 'created' not in node:
+                    node['created'] = {}
+                node['created'][a] = element.attrib[a]
 
-def elem_to_internal(elem, strip_ns=1, strip=1):
-    """Convert an Element into an internal dictionary (not JSON!)."""
+            elif a in ['lat', 'lon']:
+                if 'pos' not in node:
+                    node['pos'] = [None, None]
+                if a == 'lat':
+                    node['pos'][0] = float(element.attrib[a])
+                else:
+                    node['pos'][1] = float(element.attrib[a])
 
-    d = OrderedDict()
-    elem_tag = elem.tag
-    if strip_ns:
-        elem_tag = strip_tag(elem.tag)
-    for key, value in list(elem.attrib.items()):
-        d['@' + key] = value
-
-    # loop over subelements to merge them
-    for subelem in elem:
-        v = elem_to_internal(subelem, strip_ns=strip_ns, strip=strip)
-
-        tag = subelem.tag
-        if strip_ns:
-            tag = strip_tag(subelem.tag)
-
-        value = v[tag]
-
-        try:
-            # add to existing list for this tag
-            d[tag].append(value)
-        except AttributeError:
-            # turn existing entry into a list
-            d[tag] = [d[tag], value]
-        except KeyError:
-            # add a new non-list entry
-            d[tag] = value
-    text = elem.text
-    tail = elem.tail
-    if strip:
-        # ignore leading and trailing whitespace
-        if text:
-            text = text.strip()
-        if tail:
-            tail = tail.strip()
-
-    if tail:
-        d['#tail'] = tail
-
-    if d:
-        # use #text element if other attributes exist
-        if text:
-            d["#text"] = text
-    else:
-        # text is the value if no attributes
-        d = text or None
-    return {elem_tag: d}
-
-
-def internal_to_elem(pfsh, factory=ET.Element):
-
-    """Convert an internal dictionary (not JSON!) into an Element.
-    Whatever Element implementation we could import will be
-    used by default; if you want to use something else, pass the
-    Element class as the factory parameter.
-    """
-
-    attribs = OrderedDict()
-    text = None
-    tail = None
-    sublist = []
-    tag = list(pfsh.keys())
-    if len(tag) != 1:
-        raise ValueError("Illegal structure with multiple tags: %s" % tag)
-    tag = tag[0]
-    value = pfsh[tag]
-    if isinstance(value, dict):
-        for k, v in list(value.items()):
-            if k[:1] == "@":
-                attribs[k[1:]] = v
-            elif k == "#text":
-                text = v
-            elif k == "#tail":
-                tail = v
-            elif isinstance(v, list):
-                for v2 in v:
-                    sublist.append(internal_to_elem({k: v2}, factory=factory))
             else:
-                sublist.append(internal_to_elem({k: v}, factory=factory))
+                node[a] = element.attrib[a]
+
+        # Iterate tag children
+        for tag in element.iter("tag"):
+            if not problemchars.search(tag.attrib['k']):
+                # Tags with single colon
+                if lower_colon.search(tag.attrib['k']):
+
+                    # Single colon beginning with addr
+                    if tag.attrib['k'].find('addr') == 0:
+                        if 'address' not in node:
+                            node['address'] = {}
+
+                        sub_attr = tag.attrib['k'].split(':', 1)
+                        node['address'][sub_attr[1]] = tag.attrib['v']
+
+                    # All other single colons processed normally
+                    else:
+                        node[tag.attrib['k']] = tag.attrib['v']
+
+                # Tags with no colon
+                elif tag.attrib['k'].find(':') == -1:
+                    node[tag.attrib['k']] = tag.attrib['v']
+
+            # Iterate nd children
+            for nd in element.iter("nd"):
+                if 'node_refs' not in node:
+                    node['node_refs'] = []
+                node['node_refs'].append(nd.attrib['ref'])
+
+        return node
     else:
-        text = value
-    e = factory(tag, attribs)
-    for sub in sublist:
-        e.append(sub)
-    e.text = text
-    e.tail = tail
-    return e
+        return None
 
 
-def elem2json(elem, options, strip_ns=1, strip=1):
-
-    """Convert an ElementTree or Element into a JSON string."""
-
-    if hasattr(elem, 'getroot'):
-        elem = elem.getroot()
-
-    if options.pretty:
-        return json.dumps(elem_to_internal(elem, strip_ns=strip_ns, strip=strip), indent=4, separators=(',', ': '))
-    else:
-        return json.dumps(elem_to_internal(elem, strip_ns=strip_ns, strip=strip))
-
-
-def json2elem(json_data, factory=ET.Element):
-
-    """Convert a JSON string into an Element.
-    Whatever Element implementation we could import will be used by
-    default; if you want to use something else, pass the Element class
-    as the factory parameter.
-    """
-
-    return internal_to_elem(json.loads(json_data), factory)
-
-
-def xml2json(xmlstring, options, strip_ns=1, strip=1):
-
-    """Convert an XML string into a JSON string."""
-
-    elem = ET.fromstring(xmlstring)
-    return elem2json(elem, options, strip_ns=strip_ns, strip=strip)
-
-
-def json2xml(json_data, factory=ET.Element):
-
-    """Convert a JSON string into an XML string.
-    Whatever Element implementation we could import will be used by
-    default; if you want to use something else, pass the Element class
-    as the factory parameter.
-    """
-    if not isinstance(json_data, dict):
-        json_data = json.loads(json_data)
-
-    elem = internal_to_elem(json_data, factory)
-    return ET.tostring(elem)
-
-
-def main():
-    p = optparse.OptionParser(
-        description='Converts XML to JSON or the other way around.  Reads from standard input by default, or from file if given.',
-        prog='xml2json',
-        usage='%prog -t xml2json -o file.json [file]'
-    )
-    p.add_option('--type', '-t', help="'xml2json' or 'json2xml'", default="xml2json")
-    p.add_option('--out', '-o', help="Write to OUT instead of stdout")
-    p.add_option(
-        '--strip_text', action="store_true",
-        dest="strip_text", help="Strip text for xml2json")
-    p.add_option(
-        '--pretty', action="store_true",
-        dest="pretty", help="Format JSON output so it is easier to read")
-    p.add_option(
-        '--strip_namespace', action="store_true",
-        dest="strip_ns", help="Strip namespace for xml2json")
-    p.add_option(
-        '--strip_newlines', action="store_true",
-        dest="strip_nl", help="Strip newlines for xml2json")
-    options, arguments = p.parse_args()
-
-    inputstream = sys.stdin
-    if len(arguments) == 1:
-        try:
-            inputstream = open(arguments[0])
-        except:
-            sys.stderr.write("Problem reading '{0}'\n".format(arguments[0]))
-            p.print_help()
-            sys.exit(-1)
-
-    input = inputstream.read()
-
-    strip = 0
-    strip_ns = 0
-    if options.strip_text:
-        strip = 1
-    if options.strip_ns:
-        strip_ns = 1
-    if options.strip_nl:
-        input = input.replace('\n', '').replace('\r','')
-    if (options.type == "xml2json"):
-        out = xml2json(input, options, strip_ns, strip)
-    else:
-        out = json2xml(input)
-
-    if (options.out):
-        file = open(options.out, 'w')
-        file.write(out)
-        file.close()
-    else:
-        print(out)
-
+def process_map(file_in, pretty=False):
+    # You do not need to change this file
+    file_out = "{0}.json".format(file_in)
+    data = []
+    with codecs.open(file_out, "w") as fo:
+        for _, element in ET.iterparse(file_in):
+            el = shape_element(element)
+            if el:
+                data.append(el)
+                if pretty:
+                    fo.write(json.dumps(el, indent=2) + "\n")
+                else:
+                    fo.write(json.dumps(el) + "\n")
+    return data
+	
 if __name__ == "__main__":
-    main()
+    process_map(r'g:\code\Python\note\cleaned_shanghai.osm', pretty=True)
