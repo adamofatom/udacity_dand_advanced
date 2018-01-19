@@ -126,8 +126,8 @@ OSMFILE = "example.osm"
 street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
 
 
-expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place", "Square", "Lane", "Road",
-            "Trail", "Parkway", "Commons"]
+expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place",
+            "Square", "Lane", "Road", "Trail", "Parkway", "Commons"]
 
 # UPDATE THIS VARIABLE
 mapping = {"St": "Street",
@@ -220,7 +220,8 @@ def fix_values(element):
     # 统一电话号码格式
         if tag.attrib['k'] == 'phone':
             if len(tag.attrib['v'].split(',')) < 2:
-                tag.attrib['v'] = '+86-021-' + str(tag.attrib['v']).replace(' ', '')[-8:]
+                tag.attrib['v'] = '+86-021-' +\
+                    str(tag.attrib['v']).replace(' ', '')[-8:]
             else:
                 new_list = []
                 for i in (tag.attrib['v'].split(',')):
@@ -297,9 +298,6 @@ def process_map(file_in, pretty=False):
 
 
 def test():
-    # NOTE: if you are running this code on your computer, with a larger dataset,
-    # call the process_map procedure with pretty=False. The pretty=True option adds
-    # additional spaces to the output, making it significantly larger.
     data = process_map('example.osm', True)
     # pprint.pprint(data)
 
@@ -321,8 +319,9 @@ def test():
         "street": "West Lexington St.",
         "housenumber": "1412"
     }
-    assert data[-1]["node_refs"] == ["2199822281", "2199822390", "2199822392", "2199822369",
-                                     "2199822370", "2199822284", "2199822281"]
+    assert data[-1]["node_refs"] == ["2199822281", "2199822390", "2199822392",
+                                     "2199822369", "2199822370",
+                                     "2199822284", "2199822281"]
 
 
 if __name__ == "__main__":
