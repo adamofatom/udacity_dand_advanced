@@ -12,7 +12,9 @@
 注释：
 
 ```{r Pseudo-Facebook User Data}
-
+pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+qplot(data = pf, x = dob_day) + scale_x_continuous(breaks = 1:31) + 
+  facet_wrap(~dob_month, ncol = 3)
 ```
 
 ***
@@ -23,13 +25,16 @@
 ```{r Histogram of Users\' Birthdays}
 install.packages('ggplot2')
 library(ggplot2)
+
 ```
 
 ***
 
 #### 在这个直方图中你注意到哪些事情？
 回复：
-
+```{r}
+qplot(x = friend_count, data = pf)
+```
 ***
 
 ### Moira 的调查
@@ -87,7 +92,7 @@ library(ggplot2)
 #### 你会输入哪个代码，创建朋友数量的直方图？
 
 ```{r Friend Count}
-
+qplot(x = friend_count, data = pf)
 ```
 
 #### 这个图与 Moira 的第一个图有哪些相似的地方？
@@ -99,6 +104,7 @@ library(ggplot2)
 注释：
 
 ```{r Limiting the Axes}
+qplot(x = friend_count, data = pf, binwidth = 25) + scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50))
 
 ```
 
@@ -125,7 +131,10 @@ qplot(x = friend_count, data = pf, binwidth = 10) +
 注释：
 
 ```{r Omitting NA Values}
-
+qplot(x = friend_count, data = na.omit(pf), binwidth = 10) +
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50)) + 
+  facet_grid(gender ~ .)
 ```
 
 ***
@@ -134,12 +143,18 @@ qplot(x = friend_count, data = pf, binwidth = 10) +
 注释：
 
 ```{r Statistics \'by\' Gender}
-
+qplot(x = friend_count, data = pf, binwidth = 10) +
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50)) + 
+  facet_grid(gender ~ .)
 ```
 
 #### 哪些人朋友更多，男性还是女性？
 回复：
-
+```{r}
+table(pf$gender)
+by(pf$friend_count, pf$gender, summary)
+```
 #### 女性和男性的朋友数量中位数有哪些不同？
 回复：
 
@@ -152,7 +167,8 @@ qplot(x = friend_count, data = pf, binwidth = 10) +
 注释：
 
 ```{r Tenure}
-
+qplot(x = tenure, data = pf,
+      color = I('black'), fill = I('#099DD9'))
 ```
 
 ***
@@ -160,7 +176,9 @@ qplot(x = friend_count, data = pf, binwidth = 10) +
 #### 你如何按照年份创建任期的直方图？
 
 ```{r Tenure Histogram by Year}
-
+qplot(x = tenure / 365, data = pf, binwidth = 1,
+      color = I('black'), fill = I('#f79420')) + 
+  scale_x_continuous(limits = c(0, 8), breaks = seq(0, 8, 1))
 ```
 
 ***
