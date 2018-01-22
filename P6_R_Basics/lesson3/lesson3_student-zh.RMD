@@ -176,9 +176,11 @@ qplot(x = tenure, data = pf,
 #### 你如何按照年份创建任期的直方图？
 
 ```{r Tenure Histogram by Year}
-qplot(x = tenure / 365, data = pf, binwidth = 1,
+qplot(x = tenure / 365, data = pf,
       color = I('black'), fill = I('#f79420')) + 
-  scale_x_continuous(limits = c(0, 8), breaks = seq(0, 8, 1))
+  scale_x_continuous(limits = c(0, 8), breaks = seq(0, 8, 1)) + 
+  xlab('Number of years using Facebook') + 
+  ylab('Number of users in sample')
 ```
 
 ***
@@ -196,6 +198,9 @@ qplot(x = tenure / 365, data = pf, binwidth = 1,
 注释：
 
 ```{r User Ages}
+qplot(x = age, data = pf,
+      color = I('black'), fill = I('#f79420')) + 
+  scale_x_continuous(limits = c(0, 113), breaks = seq(13, 113, 5)) 
 
 ```
 
@@ -216,7 +221,15 @@ qplot(x = tenure / 365, data = pf, binwidth = 1,
 
 ### 改变数据
 注释：
-
+```{r}
+library(ggplot2)
+library(gridExtra) 
+summary(sqrt(pf$friend_count + 1))
+p1 <- qplot(data = pf, x = friend_count) + xlab('usual')
+p2 <- qplot(data = pf, x = sqrt(friend_count + 1)) + xlab('sqrt')
+p3 <- qplot(data = pf, x = log10(friend_count + 1)) + xlab('log10')
+grid.arrange(p1, p2, p3)
+```
 ***
 
 ### 调整尺寸图层
@@ -232,6 +245,12 @@ qplot(x = tenure / 365, data = pf, binwidth = 1,
 ### 频数多边图
 
 ```{r Frequency Polygons}
+ggplot(aes(x = www_likes, y = ..count../sum(..count..)), data = subset(pf, !is.na(gender))) +
+   geom_freqpoly(aes(color = gender), binwidth = 5) + 
+   scale_x_continuous(limits = c(200, 1000), breaks = seq(200, 1000, 50)) + 
+   xlab('点赞数量') +
+   ylab('点赞占比') 
+
 
 ```
 
@@ -241,7 +260,7 @@ qplot(x = tenure / 365, data = pf, binwidth = 1,
 注释：
 
 ```{r Likes on the Web}
-
+by(pf$www_likes, pf$gender, sum)
 ```
 
 ***
@@ -250,7 +269,9 @@ qplot(x = tenure / 365, data = pf, binwidth = 1,
 注释：
 
 ```{r Box Plots}
-
+ggplot(aes(x = gender, y = friend_count), data = subset(pf, !is.na(gender))) +
+  geom_boxplot(aes(ymin = 0, ymax = 1000), outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE, coef = 1.5)
 ```
 
 #### 调整代码，关注朋友数量在 0 到 1000 之间的用户。
