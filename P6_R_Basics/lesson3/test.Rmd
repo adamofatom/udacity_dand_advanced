@@ -1,0 +1,69 @@
+---
+title: "test"
+output: html_document
+---
+
+```{r 1. load data} 
+library(ggplot2)
+data("diamonds")
+summary(diamonds)
+```
+```{r 2. histogram} 
+ggplot(data = diamonds, x = price, aes(price)) + geom_histogram()
+```
+```{r 3. diamonds count} 
+nrow(subset(diamonds, price < 500))
+nrow(subset(diamonds, price < 250))
+nrow(subset(diamonds, price >= 15000))
+```
+
+```{r 5. limit histogram} 
+ggplot(diamonds) + geom_histogram(aes(x=price), binwidth = 10, 
+                                  color = "black", fill = "blue") + 
+  coord_cartesian(xlim=c(0,1500))
+```
+
+```{r 6. diamond prices by cut} 
+ggplot(diamonds) + geom_histogram(aes(x=price), binwidth = 10) +
+  facet_grid(diamonds$cut~.)
+
+```
+
+```{r 7. price by Cut} 
+diamonds[which.max(diamonds$price),]
+diamonds[which.min(diamonds$price),]
+by(diamonds$price,diamonds$cut,summary)
+```
+
+```{r 9. Price per Carat by Cut} 
+ggplot(diamonds) + geom_histogram(aes(x=price/carat), binwidth = 0.05) + 
+  scale_x_log10() + 
+  facet_grid(cut ~ .) 
+
+```
+
+```{r 10. the price of diamonds using box plots} 
+ggplot(diamonds) + geom_boxplot(aes(x=clarity,y=price), binwidth = 10) + 
+  coord_cartesian(ylim = c(0, 8000)) + 
+  scale_y_continuous(breaks = seq(0,8000,500))
+```
+
+```{r 11. IQR} 
+IQR(subset(diamonds, color=='D'))$price
+```
+
+```{r 12. Price per Carat Box Plots by Color}
+ggplot(diamonds) + geom_boxplot(aes(x=color,y=price/carat, fill = color), binwidth = 10) + 
+  coord_cartesian(ylim = c(0, 8000)) + 
+  scale_y_continuous(breaks = seq(0,8000,500))
+
+```
+
+```{r 13. Carat frequency polygon}  
+ggplot(diamonds) + geom_freqpoly(aes(x = carat), binwidth = 0.01) +
+  geom_hline(aes(yintercept=2000)) # 辅助线
+```
+
+```{r 15. Gapminder}  
+df = read.csv('marriage.csv', header = T, row.names = 1, check.names = F)
+```

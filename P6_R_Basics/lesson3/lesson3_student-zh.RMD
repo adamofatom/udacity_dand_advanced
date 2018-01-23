@@ -270,8 +270,10 @@ by(pf$www_likes, pf$gender, sum)
 
 ```{r Box Plots}
 ggplot(aes(x = gender, y = friend_count), data = subset(pf, !is.na(gender))) +
-  geom_boxplot(aes(ymin = 0, ymax = 1000), outlier.colour="black", outlier.shape=16,
-             outlier.size=2, notch=FALSE, coef = 1.5)
+  geom_boxplot(outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE, coef = 1.5) +
+  scale_y_continuous(limits = c(0, 1000)) 
+  
 ```
 
 #### 调整代码，关注朋友数量在 0 到 1000 之间的用户。
@@ -294,6 +296,10 @@ ggplot(aes(x = gender, y = friend_count), data = subset(pf, !is.na(gender))) +
 #### 写出可以验证答案的一些方法。
 回复：
 ```{r Friend Requests by Gender}
+ggplot(aes(x = gender, y = friendships_initiated), data = subset(pf, !is.na(gender))) +
+  geom_boxplot(outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE, coef = 1.5) +
+  coord_cartesian(ylim = c(0, 200))
 
 ```
 
@@ -305,7 +311,11 @@ ggplot(aes(x = gender, y = friend_count), data = subset(pf, !is.na(gender))) +
 注释：
 
 ```{r Getting Logical}
-
+mobile_check_in <- NA
+pf$mobile_check_in <- ifelse(pf$mobile_likes > 0, 1, 0)
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+summary(pf$mobile_check_in)
+sum(pf$mobile_check_in == 1) / length(pf$mobile_check_in)
 ```
 
 回复：
