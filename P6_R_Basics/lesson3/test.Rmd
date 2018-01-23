@@ -49,7 +49,7 @@ ggplot(diamonds) + geom_boxplot(aes(x=clarity,y=price), binwidth = 10) +
 ```
 
 ```{r 11. IQR} 
-IQR(subset(diamonds, color=='D'))$price
+IQR(subset(diamonds, color=='D')$price)
 ```
 
 ```{r 12. Price per Carat Box Plots by Color}
@@ -62,8 +62,4 @@ ggplot(diamonds) + geom_boxplot(aes(x=color,y=price/carat, fill = color), binwid
 ```{r 13. Carat frequency polygon}  
 ggplot(diamonds) + geom_freqpoly(aes(x = carat), binwidth = 0.01) +
   geom_hline(aes(yintercept=2000)) # 辅助线
-```
-
-```{r 15. Gapminder}  
-df = read.csv('marriage.csv', header = T, row.names = 1, check.names = F)
 ```
