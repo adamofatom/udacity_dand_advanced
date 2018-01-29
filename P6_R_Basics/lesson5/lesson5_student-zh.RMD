@@ -1,5 +1,11 @@
 第 5 课
 ========================================================
+```{r Premise}
+setwd("G:/ku/udacity_dand_advanced/P6_R_Basics/lesson4")
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+```
 
 ### 多变量数据
 注释：
@@ -15,8 +21,15 @@
 注释：
 
 ```{r Third Qualitative Variable}
-ggplot(aes(x = gender, y = age),
-       data = subset(pf, !is.na(gender))) + geom_histogram()
+pf.fc_by_age_gender <- pf %>%
+  filter(!is.na(gender)) %>%
+  group_by(age, gender) %>%
+  summarise(mean_friend_count = mean(friend_count),
+            median_friend_count = median(friend_count),
+            n = n()) %>%
+  ungroup() %>%
+  arrange(age)
+
 ```
 
 ***
@@ -25,7 +38,21 @@ ggplot(aes(x = gender, y = age),
 注释：
 
 ```{r Plotting Conditional Summaries}
+# Create a line graph showing the
+# median friend count over the ages
+# for each gender. Be sure to use
+# the data frame you just created,
+# pf.fc_by_age_gender.
 
+# See the Instructor Notes for a hint.
+
+# This assignment is not graded and
+# will be marked as correct when you submit.
+
+# ENTER YOUR CODE BELOW THIS LINE
+# =================================================
+ggplot(data = subset(pf, !is.na(gender)), aes(x = age, y = friend_count)) +
+  geom_line(aes(color = gender), stat = 'summary', fun.y = median)
 ```
 
 ***
@@ -54,7 +81,35 @@ library(reshape2)
 注释：
 
 ```{r Ratio Plot}
+# Plot the ratio of the female to male median
+# friend counts using the data frame
+# pf.fc_by_age_gender.wide.
 
+# Think about what geom you should use.
+# Add a horizontal line to the plot with
+# a y intercept of 1, which will be the
+# base line. Look up the documentation
+# for geom_hline to do that. Use the parameter
+# linetype in geom_hline to make the
+# line dashed.
+
+# The linetype parameter can take the values 0-6:
+# 0 = blank, 1 = solid, 2 = dashed
+# 3 = dotted, 4 = dotdash, 5 = longdash
+# 6 = twodash
+
+# This assignment is not graded and
+# will be marked as correct when you submit.
+
+# ENTER YOUR CODE BELOW THIS LINE
+# =================================================
+pf.fc_by_age_gender.wide <- dcast(pf.fc_by_age_gender,
+                                  age ~ gender,
+                                  value.var = 'median_friend_count')
+ggplot(data = pf.fc_by_age_gender.wide, 
+       aes(x = age, y = female / male))+
+  geom_line() + 
+  geom_hline(yintercept = 1, alpha = 0.3, linetype = 2, color = 'blue')
 ```
 
 ***
@@ -63,7 +118,7 @@ library(reshape2)
 注释：
 
 ```{r Third Quantitative Variable}
-
+pf$year_joined <- floor(2014 - (pf$tenure / 365))
 ```
 
 ***
@@ -72,7 +127,9 @@ library(reshape2)
 注释：
 
 ```{r Cut a Variable}
-
+summary(pf$year_joined)
+table(pf$year_joined)
+pf$year_joined.bucket <- cut(pf$year_joined, c(2004, 2009, 2011, 2012, 2014))
 ```
 
 ***
@@ -81,7 +138,9 @@ library(reshape2)
 注释：
 
 ```{r Plotting it All Together}
-
+ggplot(data = subset(pf, !is.na(year_joined.bucket)),
+       aes(x = age, y = friend_count)) +
+  geom_line(aes(color = year_joined.bucket), stat = 'summary', fun.y = median)
 ```
 
 ***
@@ -90,7 +149,10 @@ library(reshape2)
 注释：
 
 ```{r Plot the Grand Mean}
-
+ggplot(data = subset(pf, !is.na(year_joined.bucket)),
+       aes(x = age, y = friend_count)) +
+  geom_line(aes(color = year_joined.bucket), stat = 'summary', fun.y = median) +
+  geom_line(stat = 'summary', fun.y = median, linetype = 2)
 ```
 
 ***
@@ -99,7 +161,7 @@ library(reshape2)
 注释：
 
 ```{r Friending Rate}
-
+with(subset(pf, tenure >= 1), summary(friend_count / tenure))
 ```
 
 ***
@@ -112,11 +174,20 @@ library(reshape2)
 最大交友率是什么？
 
 ```{r Friendships Initiated}
-
+ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+       data = subset(pf, tenure >= 1)) +
+  geom_line(aes(color = year_joined.bucket),
+            stat = 'summary',
+            fun.y = mean)
 ```
 
 ***
-
+### 偏差方差折衷
+```{r}
+ggplot(aes(x = 7 * round(tenure / 7), y = friendships_initiated / tenure),
+       data = subset(pf, tenure > 0)) +
+  geom_smooth(aes(color = year_joined.bucket))
+```
 ### 再次访问方差权衡
 注释：
 
@@ -146,6 +217,8 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
             stat = "summary",
             fun.y = mean)
 
+
+
 ```
 
 ***
@@ -164,7 +237,14 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 注释：
 
 ```{r Histograms Revisited}
+yo <- read.csv('yogurt.csv')
+str(yo)
 
+yo$id <- factor(yo$id)
+str(yo)
+
+ggplot(data = yo, aes(x = price, fill = '#FFFFFF')) + 
+  geom_histogram(binwidth = 10)
 ```
 
 ***
@@ -173,7 +253,9 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 注释：
 
 ```{r Number of Purchases}
-
+yo <- transform(yo, all.purchases = strawberry +
+                  blueberry + pina.colada + 
+                  plain +mixed.berry)
 ```
 
 ***
@@ -182,7 +264,8 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 注释：
 
 ```{r Prices over Time}
-
+ggplot(data = yo, aes(x = time, y = price)) +
+  geom_jitter(alpha = 0.25, shape = 21, fill = I('#F79420'))
 ```
 
 ***
