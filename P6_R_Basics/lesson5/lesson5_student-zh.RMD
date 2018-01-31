@@ -278,7 +278,14 @@ ggplot(data = yo, aes(x = time, y = price)) +
 ### 观察家庭的样本
 
 ```{r Looking at Sample of Households}
+set.seed(4444)  # 设定随机种子，可复现
+sample.ids <- sample(levels(yo$id), 16)  # 设定16个变量
 
+ggplot(data = subset(yo, id %in% sample.ids),
+       aes(x = time, y = price)) +
+  facet_wrap( ~ id) +
+  geom_line() +
+  geom_point(aes(size = all.purchases), pch = 1)
 ```
 
 ***
@@ -295,6 +302,15 @@ ggplot(data = yo, aes(x = time, y = price)) +
 
 ### 散点图矩阵
 注释：
+```{r}
+library(GGally)
+theme_set(theme_minimal(20))
+
+set.seed(1836)
+pf_subset <- pf[, c(2:15)]
+names(pf_subset)
+ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
+```
 
 ***
 
