@@ -9,7 +9,11 @@
 ### 散点图回顾
 
 ```{r Scatterplot Review}
-
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+  geom_point() +
+  scale_x_continuous(lim = c(0, quantile(diamonds$carat, 0.99)))
+  scale_y_continuous(lim = c(0, quantile(diamonds$carat, 0.99)))
+  
 ```
 
 ***
@@ -36,14 +40,14 @@
 
 ```{r ggpairs Function}
 # 如有需要，安装下列组件
-install.packages('GGally')
-install.packages('scales')
-install.packages('memisc')
-install.packages('lattice')
-install.packages('MASS')
-install.packages('car')
-install.packages('reshape')
-install.packages('plyr')
+# install.packages('GGally')
+# install.packages('scales')
+# install.packages('memisc')
+# install.packages('lattice')
+# install.packages('MASS')
+# install.packages('car')
+# install.packages('reshape')
+# install.packages('plyr')
 
 # 加载 ggplot 图画组件及其他内容
 library(ggplot2)
@@ -66,7 +70,15 @@ ggpairs(diamond_samp, params = c(shape = I('.'), outlier.shape = I('.')))
 注释：
 
 ```{r The Demand of Diamonds}
+ggplot(data = diamonds, aes(x = carat, y = price)) + 
+  geom_histogram()
 
+
+plot2 <- ggplot(data = diamonds, aes(x = carat, y = price)) + 
+  geom_histogram(stat = 'identity')
+
+
+grid.arrange(plot1, plot2)
 ```
 
 ***
@@ -79,6 +91,9 @@ ggpairs(diamond_samp, params = c(shape = I('.'), outlier.shape = I('.')))
 ### 改变散点图
 
 ```{r Scatterplot Transformation}
+cuber_trans = function() trans_new('cuberoot',
+                                   transform = function(x) x^(1/3),
+                                   inverse = function(x) x^3)
 
 ```
 
@@ -93,7 +108,7 @@ cuberoot_trans = function() trans_new('cuberoot', transform = function(x) x^(1/3
 #### 使用函数 cuberoot_trans
 ```{r Use cuberoot_trans}
 ggplot(aes(carat, price), data = diamonds) + 
-  geom_point() + 
+  geom_point(alpha = 0.1, size = 1, position = 'jitter') + 
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
   scale_y_continuous(trans = log10_trans(), limits = c(350, 15000),
@@ -135,7 +150,7 @@ ggplot(aes(carat, price), data = diamonds) +
 install.packages('RColorBrewer')
 library(RColorBrewer)
 
-ggplot(aes(x = carat, y = price), data = diamonds) + 
+ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) + 
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_color_brewer(type = 'div',
     guide = guide_legend(title = 'Clarity', reverse = T,
@@ -158,7 +173,7 @@ ggplot(aes(x = carat, y = price), data = diamonds) +
 
 改变下列代码。
 ```{r Price vs. Carat and Cut}
-ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) + 
+ggplot(aes(x = carat, y = price, color = cut), data = diamonds) + 
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_color_brewer(type = 'div',
                      guide = guide_legend(title = 'Clarity', reverse = T,
@@ -181,10 +196,10 @@ ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) +
 
 改变下列代码。
 ```{r Price vs. Carat and Color}
-ggplot(aes(x = carat, y = price, color = cut), data = diamonds) + 
+ggplot(aes(x = carat, y = price, color = color), data = diamonds) + 
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_color_brewer(type = 'div',
-                     guide = guide_legend(title = Cut, reverse = T,
+                     guide = guide_legend(title = 'color', reverse = F,
                                           override.aes = list(alpha = 1, size = 2))) +  
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
@@ -211,6 +226,7 @@ ggplot(aes(x = carat, y = price, color = cut), data = diamonds) +
 Notes:
 
 ```{r Building the Linear Model}
+library(memisc)
 m1 <- lm(I(log(price)) ~ I(carat^(1/3)), data = diamonds)
 m2 <- update(m1, ~ . + carat)
 m3 <- update(m2, ~ . + cut)
@@ -255,7 +271,14 @@ https://github.com/solomonm/diamonds-data
 Notes:
 
 ```{r Building a Model Using the Big Diamonds Data Set}
-
+m1 <- lm(I(log(price)) ~ I(carat^(1/3)), 
+         data = subset(diamondBigSample, 
+                       price < 10000 & cert=='GIA'))
+m2 <- update(m1, ~ . + carat)
+m3 <- update(m2, ~ . + cut)
+m4 <- update(m3, ~ . + color)
+m5 <- update(m4, ~ . + clarity)
+mtable(m1, m2, m3, m4, m5)
 ```
 
 ***
