@@ -1,4 +1,4 @@
-Project02_Paipaidai by Adam
+TITLE by YOUR_NAME_HERE
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
@@ -9,43 +9,17 @@ Project02_Paipaidai by Adam
 # This prevents the code from displaying in the knitted HTML output.这可以避免代码混入 HTML 输出显示。
 # 应当在文件中，对所有代码块设为 echo=FALSE 。
 
-suppressMessages(library(reshape))
-suppressMessages(library(reshape2))
-suppressMessages(library(ggplot2))
-suppressMessages(library(dplyr))
-suppressMessages(library(maps))
-suppressMessages(library(RColorBrewer))
-suppressMessages(library(GGally))
-suppressMessages(library(scales))
-suppressMessages(library(memisc))
+library(ggplot2)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
 # 加载数据
-lc <- read.csv('g:\\ku\\udacity_dand_advanced\\Project02_Paipaidai\\data\\LC.csv',
-                 fileEncoding = 'UTF-8') # Loan Characteristics
-lcis <- read.csv('g:\\ku\\udacity_dand_advanced\\Project02_Paipaidai\\data\\LCIS.csv',
-                 fileEncoding = 'UTF-8') # Loan Characteristics Investment Status
-lp <- read.csv('g:\\ku\\udacity_dand_advanced\\Project02_Paipaidai\\data\\LP.csv',
-                 fileEncoding = 'UTF-8') # Loan Periodic
-```
-
-
-```{r echo=FALSE, Overview}
-# 数据概览
-summary(lc)
-summary(lcis)
-summary(lp)
-str(lc)
-str(lcis)
-str(lp)
 
 ```
+
 # 单变量绘图选择
 ```{r echo=FALSE, Univariate_Plots}
-ggplot(data = lc, aes(x = lc['年龄'])) +
-  geom_histogram(binwidth = 1) +
-  xlab('年龄')
+
 ```
 
 # 单变量分析
