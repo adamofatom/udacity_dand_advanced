@@ -9,17 +9,54 @@ TITLE by YOUR_NAME_HERE
 # This prevents the code from displaying in the knitted HTML output.这可以避免代码混入 HTML 输出显示。
 # 应当在文件中，对所有代码块设为 echo=FALSE 。
 
-library(ggplot2)
+suppressMessages(library(reshape))
+suppressMessages(library(reshape2))
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+suppressMessages(library(maps))
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(GGally))
+suppressMessages(library(scales))
+suppressMessages(library(memisc))
+suppressMessages(library(corrplot))
 ```
 
 ```{r echo=FALSE, Load_the_Data}
 # 加载数据
 
+# 1 - fixed acidity: most acids involved with wine or fixed or nonvolatile (do not evaporate readily)
+# 2 - volatile acidity: the amount of acetic acid in wine, which at too high of levels can lead to an unpleasant, vinegar taste
+# 3 - citric acid: found in small quantities, citric acid can add 'freshness' and flavor to wines
+# 4 - residual sugar: the amount of sugar remaining after fermentation stops, it's rare to find wines with less than 1 gram/liter and wines with greater than 45 grams/liter are considered sweet
+# 5 - chlorides: the amount of salt in the wine
+# 6 - free sulfur dioxide: the free form of SO2 exists in equilibrium between molecular SO2 (as a dissolved gas) and bisulfite ion; it prevents microbial growth and the oxidation of wine
+# 7 - total sulfur dioxide: amount of free and bound forms of S02; in low concentrations, SO2 is mostly undetectable in wine, but at free SO2 concentrations over 50 ppm, SO2 becomes evident in the nose and taste of wine
+# 8 - density: the density of water is close to that of water depending on the percent alcohol and sugar content
+# 9 - pH: describes how acidic or basic a wine is on a scale from 0 (very acidic) to 14 (very basic); most wines are between 3-4 on the pH scale
+# 10 - sulphates: a wine additive which can contribute to sulfur dioxide gas (S02) levels, wich acts as an antimicrobial and antioxidant
+# 11 - alcohol: the percent alcohol content of the wine
+# Output variable (based on sensory data): 
+# 12 - quality (score between 0 and 10)
+wq <- read.csv('g:\\ku\\udacity_dand_advanced\\Project02_wineQuality\\data\\wineQualityWhites.csv')
+str(wq)
+summary(wq)
+head(wq)
+```
+
+# 各变量之间相关性查看1
+```{r echo=FALSE, Correlation_Overview_1}
+wine_samp <- wine[sample(1:length(wine$quality), 1000),]
+ggpairs(wine_samp, wrap_fn_with_param_arg = c(shape = I('.'), outlier.shape = I('.')))
+```
+# 各变量之间相关性查看2
+```{r echo=FALSE, Correlation_Overview_2}
+corrplot(cor(wine))
 ```
 
 # 单变量绘图选择
 ```{r echo=FALSE, Univariate_Plots}
-
+ggplot(data = wq, aes(x = quality)) +
+  geom_histogram(binwidth = 0.5)
 ```
 
 # 单变量分析
@@ -38,7 +75,24 @@ library(ggplot2)
 
 # 双变量绘图选择
 ```{r echo=FALSE, Bivariate_Plots}
+ggplot(data = wq, aes(as.factor(quality), alcohol)) +
+  geom_boxplot() +
+  xlab("Quality") +
+  ylab("Alcohol")
 
+ggplot(data = wq, aes(quality, alcohol)) +
+  geom_jitter() +
+  geom_smooth(method='lm')
+
+ggplot(data = wq, aes(as.factor(quality), residual.sugar)) +
+  geom_boxplot() +
+  xlab("Quality") +
+  ylab("Residual Sugar") +
+  geom_smooth(method='lm')
+
+ggplot(data=data,d aes(as.factor(quality), density))  
++geom_boxplot()+xlab("Quality")+ylab("Density")
+ggplot(data=data, aes(quality,density))+geom_jitter()+geom_smooth(method='lm')
 ```
 
 # 双变量分析
