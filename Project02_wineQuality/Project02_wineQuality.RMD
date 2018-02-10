@@ -41,6 +41,8 @@ wq <- read.csv('g:\\ku\\udacity_dand_advanced\\Project02_wineQuality\\data\\wine
 str(wq)
 summary(wq)
 head(wq)
+wine <- wq[,-1]  # 删除无用列
+
 ```
 
 # 各变量之间相关性查看1
@@ -55,17 +57,79 @@ corrplot(cor(wine))
 
 # 单变量绘图选择
 ```{r echo=FALSE, Univariate_Plots}
-ggplot(data = wq, aes(x = quality)) +
-  geom_histogram(binwidth = 0.5)
+# 添加优质酒列，quality为7~9的白葡萄酒
+wine$premium <- ifelse(wine$quality > 6, 1,0)
+
+# 创建 bound.sulfur.dioxide
+wine$bound.sulfur.dioxide <- 
+  wine$total.sulfur.dioxide - 
+  wine$free.sulfur.dioxide
+
+# 创建函数
+histogram_plot <- function(para, width, title) {
+  ggplot(data = wine, aes_string(x = para)) +
+  geom_histogram(binwidth = width) + 
+  ggtitle(title)
+}
+# quality 分布
+histogram_plot('quality', 1, 
+               'quality 分布')
+
+# alcohol 分布
+histogram_plot('alcohol', 0.1, 
+               'alcohol 分布')
+
+# pH 分布
+histogram_plot('pH', 0.01, 'pH 分布') +
+  xlim((floor(min(wine$pH))), ceiling(max(wine$pH)))
+
+# residual.sugar 分布
+# it's rare to find wines with less than 1 gram/liter 
+# and wines with greater than 45 grams/liter are considered sweet
+histogram_plot('residual.sugar', 0.1, 
+               'residual.sugar 分布')
+
+# fixed acidity 分布
+histogram_plot('fixed.acidity', 0.1, 
+               'fixed acidity 分布')
+
+# chlorides分布
+histogram_plot('chlorides', 0.01, 
+               'chlorides分布')
+
+# free.sulfur.dioxide 分布
+histogram_plot('free.sulfur.dioxide', 1, 
+               'free.sulfur.dioxide 分布')
+
+# total.sulfur.dioxide 分布
+histogram_plot('total.sulfur.dioxide', 1, 
+               'total.sulfur.dioxide 分布')
+
+# bound.sulfur.dioxide 分布
+histogram_plot('bound.sulfur.dioxide', 1,
+               'bound.sulfur.dioxide 分布')
+
+# premium 分布
+histogram_plot('premium', 1,
+               'premium 分布')
+
 ```
 
 # 单变量分析
 
 ### 你的数据集结构是什么？
 
+本数据集共有4898个观测值，12个变量，包括 fixed.acidity，volatile.acidity，citric.acid，chlorides，
+free.sulfur.dioxide， total.sulfur.dioxide，density，
+pH，sulphates，alcohol，quality  
+
 ### 你的数据集内感兴趣的主要特性有哪些？
 
+导致白葡萄酒品质的具体指标有哪些
+
 ### 你认为数据集内哪些其他特征可以帮助你探索兴趣特点？
+
+
 
 ### 根据数据集内已有变量，你是否创建了任何新变量？
 
@@ -75,24 +139,33 @@ ggplot(data = wq, aes(x = quality)) +
 
 # 双变量绘图选择
 ```{r echo=FALSE, Bivariate_Plots}
-ggplot(data = wq, aes(as.factor(quality), alcohol)) +
+ggplot(data = wine, aes(as.factor(quality), alcohol)) +
   geom_boxplot() +
   xlab("Quality") +
   ylab("Alcohol")
 
-ggplot(data = wq, aes(quality, alcohol)) +
+ggplot(data = wine, aes(quality, alcohol)) +
   geom_jitter() +
-  geom_smooth(method='lm')
+  geom_smooth(method='lm') +
+  xlab("Quality") +
+  ylab("Alcohol")
 
-ggplot(data = wq, aes(as.factor(quality), residual.sugar)) +
+ggplot(data = wine, aes(as.factor(quality), residual.sugar)) +
   geom_boxplot() +
   xlab("Quality") +
   ylab("Residual Sugar") +
   geom_smooth(method='lm')
 
-ggplot(data=data,d aes(as.factor(quality), density))  
-+geom_boxplot()+xlab("Quality")+ylab("Density")
-ggplot(data=data, aes(quality,density))+geom_jitter()+geom_smooth(method='lm')
+ggplot(data=wine, aes(as.factor(quality), density)) +
+  geom_boxplot() +
+  xlab("Quality") +
+  ylab("Density")
+
+ggplot(data=wine, aes(quality, density)) +
+  geom_jitter() +
+  geom_smooth(method='lm') +
+  xlab("Quality") +
+  ylab("Density")
 ```
 
 # 双变量分析
