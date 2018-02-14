@@ -19,6 +19,8 @@ suppressMessages(library(GGally))
 suppressMessages(library(scales))
 suppressMessages(library(memisc))
 suppressMessages(library(corrplot))
+suppressMessages(library(gridExtra))
+suppressMessages(library(randomForest))
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -129,16 +131,20 @@ pH，sulphates，alcohol，quality
 
 ### 你认为数据集内哪些其他特征可以帮助你探索兴趣特点？
 
-
+对葡萄酒的平衡起着关键性影响的元素，包括：甜度、酸度、果味、酒精以及单宁。
 
 ### 根据数据集内已有变量，你是否创建了任何新变量？
 
+根据数据集说明 bound.sulfur.dioxide 加上 free.sulfur.dioxide 等于 total.sulfur.dioxide
+
 ### 在已经探究的特性中，是否存在任何异常分布？你是否对数据进行一些操作，如清洁、调整或改变数据的形式？如果是，你为什么会这样做？
 
+未见异常
 
 
 # 双变量绘图选择
-```{r echo=FALSE, Bivariate_Plots}
+```{r echo=FALSE, Bivariate_Plots_1}
+# alcohol 与 quality 的关系
 ggplot(data = wine, aes(as.factor(quality), alcohol)) +
   geom_boxplot() +
   xlab("Quality") +
@@ -150,76 +156,220 @@ ggplot(data = wine, aes(quality, alcohol)) +
   xlab("Quality") +
   ylab("Alcohol")
 
+# residual.sugar 与 quality 的关系
 ggplot(data = wine, aes(as.factor(quality), residual.sugar)) +
   geom_boxplot() +
   xlab("Quality") +
   ylab("Residual Sugar") +
   geom_smooth(method='lm')
 
-ggplot(data=wine, aes(as.factor(quality), density)) +
-  geom_boxplot() +
+# citric.acid 与 quality 的关系
+ggplot(data = wine, aes(x = quality, y = citric.acid)) +
+  geom_jitter(alpha=1/5) +
   xlab("Quality") +
-  ylab("Density")
+  ylab("Citric Acid") +
+  geom_smooth(method = 'lm')
 
-ggplot(data=wine, aes(quality, density)) +
-  geom_jitter() +
-  geom_smooth(method='lm') +
-  xlab("Quality") +
-  ylab("Density")
+# pH 与 葡萄酒含有的酸的关系
+# p1 为 fixed.acidity
+p1 <- ggplot(data = wine, aes(x = fixed.acidity, y = pH)) +
+  geom_point(alpha = 0.2) + 
+  geom_smooth(method = 'lm', color='red')
+
+# p2 为 volatile.acidity
+p2 <- ggplot(data = wine, aes(x = volatile.acidity, y = pH)) +
+  geom_point(alpha = 0.2) + 
+  geom_smooth(method = 'lm', color='red')
+
+# p3 为 volatile.acidity
+p3 <- ggplot(data = wine, aes(x = citric.acid, y = pH)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = 'lm', color='red')
+
+grid.arrange(p1, p2, p3, ncol=3)
+
+ggplot(data = wine, aes(x = alcohol, color = factor(quality), 
+                        fill = factor(quality))) + 
+  geom_histogram(position = position_stack(reverse = TRUE), 
+                 alpha = 0.2, binwidth = 0.2)
+```
+
+```{r echo=FALSE}
+# 酒精含量根据常识，含量越高，酒的密度越小
+with(wine, cor.test(density, alcohol))
+
+with(wine, cor.test(quality, citric.acid))
+
+with(wine, cor.test(total.sulfur.dioxide, sulphates))
+```
+```{r echo=FALSE, Bivariate_Plots_2}
+# 绘图也是显示柠檬酸与品质并无多大关系，两者分布差不多
+histogram_plot('citric.acid', 0.01, 'citric.acid 与 premium') +
+  facet_wrap(~ premium, ncol = 2)
+```
+```{r echo=FALSE, Bivariate_Plots_3}
+# 酒精度数与品质的多维展示
+ggplot(data = wine, aes(x = quality, y = alcohol, color = ..x..)) +
+  geom_jitter(alpha = 0.3) +
+  geom_line(stat = "summary", fun.y = mean, color = "orange") + 
+  geom_line(stat = "summary", fun.y = quantile,
+            fun.args = list(probs = .1), 
+            linetype = 2,color = "red") + 
+  geom_line(stat = "summary", fun.y = quantile,
+            fun.args = list(probs = .5),
+            linetype = 2, color = "green") + 
+  geom_line(stat = "summary", fun.y = quantile, 
+            fun.args = list(probs = .9),
+            linetype = 2,color = "blue") +
+  scale_fill_gradient("Quality", low = "green", high = "blue")
+
+ggplot(data = wine, aes(factor(quality), 
+                        alcohol, color=..x..)) + 
+  geom_jitter(alpha = 0.3) +
+  geom_boxplot(alpha = 0.5, color = 'blue') +
+  stat_summary(fun.y = "mean", geom = "point", 
+               color = "red")+
+  geom_smooth(method = 'lm', aes(group = 1)) + 
+  scale_fill_gradient("Quality", low = "green", high = "blue")
+```
+```{r echo=FALSE, Bivariate_Plots_4}
+# 挥发性酸与品质的多维展示
+ggplot(data = wine, aes(x = quality, y = volatile.acidity,
+                        color=..x..)) + 
+  geom_jitter(alpha=0.3) +
+  geom_line(stat = "summary", fun.y = mean,
+            color = "orange") + 
+  geom_line(stat = "summary",fun.y = quantile,
+            fun.args = list(probs = .1),
+            linetype = 2, color = "red") + 
+  geom_line(stat = "summary",fun.y = quantile,
+            fun.args = list(probs = .5),
+            linetype = 2, color = "green") + 
+  geom_line(stat = "summary",fun.y = quantile,
+            fun.args = list(probs = .9),
+            linetype = 2,color = "blue") +
+  scale_fill_gradient("Quality", low = "green", high = "blue")
+
 ```
 
 # 双变量分析
 
 ### 探讨你在这部分探究中观察到的一些关系。这些感兴趣的特性与数据集内其他特性有什么区别？
 
+1.  酒精度数与密度强相关
+2.  不挥发酸对 pH 影响较大
+3.  酒精度数会对品质有较大影响
+
 ### 你是否观察到主要特性与其他特性之间的有趣关系？
+
+硫酸盐在葡萄酒产中是一种用于产生二氧化硫的添加剂，经分析，硫酸盐与总二氧化硫，硫酸盐与游离二氧化硫之间相关系数并不高
 
 ### 你发现最强的关系是什么？
 
+酒精度数与密度强相关
 
 
 
 # 多变量绘图选择
 
 ```{r echo=FALSE, Multivariate_Plots}
+# volatile.acidity 、 alcohol 、 sulphates 与 quality 多变量关系图
+ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
+  geom_point(alpha = 0.2) +
+  facet_wrap( ~ quality, ncol = 3, scales = "free")
 
+ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
+  geom_point(aes(color = sulphates)) +
+  facet_wrap( ~ quality, ncol = 3, scales = "free") +
+  scale_fill_gradientn(colours = terrain.colors(10)) 
+
+# free.sulfur.dioxide 、 total.sulfur.dioxide 、 sulphates 与 quality 多变量关系图
+ggplot(data = wine, aes(x = free.sulfur.dioxide,
+                        y = total.sulfur.dioxide)) + 
+  geom_point(aes(color = sulphates),alpha=0.3) +
+  geom_smooth(method = 'lm', color='red') + 
+  scale_fill_gradientn(colours = terrain.colors(10)) + 
+  facet_wrap( ~ quality,ncol = 3)
 ```
 
 # 多变量分析
 
 ###  探讨你在这部分探究中观察到的一些关系。通过观察感兴趣的特性，是否存在相互促进的特性？
 
+1.  挥发性酸越低，红酒品质越高
+2.  硫酸盐越高，红酒品质也越高
+3.  酒精浓度越高，红酒品质也越高
+
+酒精度数与密度高度负相关
+
 ### 这些特性之间是否存在有趣或惊人的联系呢？
+
+挥发性酸、硫酸盐及酒精度数分别对应了酸味和甜味及酒的最基础属性，对酒类品质影响最大
 
 ### 选项：你是否创建过数据集的任何模型？讨论你模型的优缺点。
 
+没有。
 ------
 
 # 定稿图与总结
 
 ### 绘图一
 ```{r echo=FALSE, Plot_One}
-
+corrplot(cor(wine))
 ```
 
 ### 描述一
 
+使用新的 package 轻松的获取了各变量之间的相关关系
 
 ### 绘图二
 ```{r echo=FALSE, Plot_Two}
+ggplot(data = wine, aes(x = alcohol, y = density, 
+                        color = factor(quality))) +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  geom_smooth(method = 'lm', se = FALSE, size = 1) +
+  scale_color_brewer(palette = 'Set2') +
+  ggtitle('Alcohol vs Density')+
+  ylab('Density') +
+  xlab('Alcohol')+
+  theme(legend.text = element_text(size=10),
+        legend.title = element_text(size=10)) + 
+  theme(legend.position = "right")
 
 ```
 
 ### 描述二
 
+*    红酒品质越高，酒精度数越高
+*    酒精度数越高，密度越低
 
 ### 绘图三
 ```{r echo=FALSE, Plot_Three}
+wineRF <- randomForest(data = wq[, -1], factor(quality) ~ ., ntree = 150)
 
+importance    <- importance(wineRF)
+varImportance <- data.frame(Variables = row.names(importance), 
+                            Importance = round(importance[ ,'MeanDecreaseGini'],2))
+
+# Create a rank variable based on importance
+rankImportance <- varImportance %>%
+  mutate(Rank = paste0('#',dense_rank(desc(Importance))))
+
+# Use ggplot2 to visualize the relative importance of variables
+ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
+                           y = Importance, fill = Importance)) +
+  geom_bar(stat = 'identity') + 
+  geom_text(aes(x = Variables, y = 0.5, label = Rank),
+            hjust=0, vjust=0.55, size = 4, colour = 'red') +
+  labs(x = 'Variables') +
+  coord_flip()
 ```
 
 ### 描述三
 
+使用随机森林验证之前的结果
 ------
 
 # 反思
+
+用单变量、双变量及多变量通过相关关系分析酒的品质是如何成因的话有些片面，之后通过机器学习模型对求证结果进行反推，会发现有很多不足，还需要进一步加强
