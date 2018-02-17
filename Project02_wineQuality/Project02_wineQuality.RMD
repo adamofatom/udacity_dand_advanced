@@ -52,7 +52,9 @@ wine <- wq[,-1]  # 删除无用列
 wine_samp <- wine[sample(1:length(wine$quality), 1000),]
 ggpairs(wine_samp, wrap_fn_with_param_arg = c(shape = I('.'), outlier.shape = I('.')))
 ```
+
 # 各变量之间相关性查看2
+
 ```{r echo=FALSE, Correlation_Overview_2}
 corrplot(cor(wine))
 ```
@@ -117,6 +119,18 @@ histogram_plot('premium', 1,
 
 ```
 
+## 单变量图例说明
+1.  quality 呈正态分布
+2.  alcohol 总体分布在9到11.5左右
+3.  pH 呈正态分布
+4.  多数 residual.sugar 并不高
+5.  fixed.acidity 呈正态分布
+6.  chlorides 分布于0.22至0.06之间
+7.  free.sulfur.dioxide 呈正态分布，有少量异常值
+8.  total.sulfur.dioxide 呈正态分布，异常值并不多
+9.  bound.sulfur.dioxide 呈正态分布
+10. 高品质 premium （quality 为7,8,9）占少量，约为普通酒的四分之一
+
 # 单变量分析
 
 ### 你的数据集结构是什么？
@@ -135,7 +149,8 @@ pH，sulphates，alcohol，quality
 
 ### 根据数据集内已有变量，你是否创建了任何新变量？
 
-根据数据集说明 bound.sulfur.dioxide 加上 free.sulfur.dioxide 等于 total.sulfur.dioxide
+根据数据集说明 bound.sulfur.dioxide 加上 free.sulfur.dioxide 等于 total.sulfur.dioxide。
+另外添加了高品质 premium （quality 为7,8,9）的变量
 
 ### 在已经探究的特性中，是否存在任何异常分布？你是否对数据进行一些操作，如清洁、调整或改变数据的形式？如果是，你为什么会这样做？
 
@@ -145,23 +160,17 @@ pH，sulphates，alcohol，quality
 # 双变量绘图选择
 ```{r echo=FALSE, Bivariate_Plots_1}
 # alcohol 与 quality 的关系
-ggplot(data = wine, aes(as.factor(quality), alcohol)) +
-  geom_boxplot() +
-  xlab("Quality") +
-  ylab("Alcohol")
-
-ggplot(data = wine, aes(quality, alcohol)) +
-  geom_jitter() +
-  geom_smooth(method='lm') +
-  xlab("Quality") +
-  ylab("Alcohol")
+ggplot(data = wine, aes(factor(quality), chlorides)) +
+  geom_jitter( alpha = 0.3)  +
+  geom_boxplot( alpha = 0.5)+
+  coord_cartesian(ylim = c(0.01, 0.101))
 
 # residual.sugar 与 quality 的关系
 ggplot(data = wine, aes(as.factor(quality), residual.sugar)) +
   geom_boxplot() +
   xlab("Quality") +
   ylab("Residual Sugar") +
-  geom_smooth(method='lm')
+  ylim(0, 20)
 
 # citric.acid 与 quality 的关系
 ggplot(data = wine, aes(x = quality, y = citric.acid)) +
@@ -191,8 +200,17 @@ grid.arrange(p1, p2, p3, ncol=3)
 ggplot(data = wine, aes(x = alcohol, color = factor(quality), 
                         fill = factor(quality))) + 
   geom_histogram(position = position_stack(reverse = TRUE), 
-                 alpha = 0.2, binwidth = 0.2)
+                 alpha = 0.2, binwidth = 0.2) +
+  scale_color_brewer(palette = "Blues")
 ```
+
+## 双变量图例说明1
+
+1.  大量酒的 chlorides 随着quality 上身而下降
+2.  此处 residual.sugar 有大量异常值，即便缩小范围，依然没有发现相应规律
+3.  citric.acid 与quality 无明显关系，在下面分析中会进一步拓展
+4.  fixed.acidity 与 citric.acid 对 pH影响较大，相对应的 citric.acid对 pH 影响就几乎没有
+5.  随着度数增加，quality 比例增加
 
 ```{r echo=FALSE}
 # 酒精含量根据常识，含量越高，酒的密度越小
@@ -207,6 +225,11 @@ with(wine, cor.test(total.sulfur.dioxide, sulphates))
 histogram_plot('citric.acid', 0.01, 'citric.acid 与 premium') +
   facet_wrap(~ premium, ncol = 2)
 ```
+
+## 双变量图例说明2
+
+绘图也显示柠檬酸与品质并无多大关系，两者分布差不多
+
 ```{r echo=FALSE, Bivariate_Plots_3}
 # 酒精度数与品质的多维展示
 ggplot(data = wine, aes(x = quality, y = alcohol, color = ..x..)) +
@@ -224,7 +247,7 @@ ggplot(data = wine, aes(x = quality, y = alcohol, color = ..x..)) +
   scale_fill_gradient("Quality", low = "green", high = "blue")
 
 ggplot(data = wine, aes(factor(quality), 
-                        alcohol, color=..x..)) + 
+                        alcohol, color = ..x..)) + 
   geom_jitter(alpha = 0.3) +
   geom_boxplot(alpha = 0.5, color = 'blue') +
   stat_summary(fun.y = "mean", geom = "point", 
@@ -232,6 +255,13 @@ ggplot(data = wine, aes(factor(quality),
   geom_smooth(method = 'lm', aes(group = 1)) + 
   scale_fill_gradient("Quality", low = "green", high = "blue")
 ```
+
+## 双变量图例说明3
+
+1.  按照分批量对 quality 与 alcohol 的关系进行平均可以看到 quality 越高，alcohol 也越高
+2.  在此基础上再描绘一条线性模型，可以更直观的看到以上关系
+
+
 ```{r echo=FALSE, Bivariate_Plots_4}
 # 挥发性酸与品质的多维展示
 ggplot(data = wine, aes(x = quality, y = volatile.acidity,
@@ -252,13 +282,17 @@ ggplot(data = wine, aes(x = quality, y = volatile.acidity,
 
 ```
 
+## 双变量图例说明4
+
+volatile.acid 对于 quality 较高时影响较大
+
 # 双变量分析
 
 ### 探讨你在这部分探究中观察到的一些关系。这些感兴趣的特性与数据集内其他特性有什么区别？
 
-1.  酒精度数与密度强相关
-2.  不挥发酸对 pH 影响较大
-3.  酒精度数会对品质有较大影响
+1.  alcohol 与 density 强相关
+2.  fixed.acidity 对 pH 影响较大
+3.  alcohol 会对 quality 有较大影响
 
 ### 你是否观察到主要特性与其他特性之间的有趣关系？
 
@@ -266,7 +300,7 @@ ggplot(data = wine, aes(x = quality, y = volatile.acidity,
 
 ### 你发现最强的关系是什么？
 
-酒精度数与密度强相关
+alcohol 与 density 强相关
 
 
 
@@ -275,10 +309,6 @@ ggplot(data = wine, aes(x = quality, y = volatile.acidity,
 ```{r echo=FALSE, Multivariate_Plots}
 # volatile.acidity 、 alcohol 、 sulphates 与 quality 多变量关系图
 ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
-  geom_point(alpha = 0.2) +
-  facet_wrap( ~ quality, ncol = 3, scales = "free")
-
-ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
   geom_point(aes(color = sulphates)) +
   facet_wrap( ~ quality, ncol = 3, scales = "free") +
   scale_fill_gradientn(colours = terrain.colors(10)) 
@@ -286,11 +316,18 @@ ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
 # free.sulfur.dioxide 、 total.sulfur.dioxide 、 sulphates 与 quality 多变量关系图
 ggplot(data = wine, aes(x = free.sulfur.dioxide,
                         y = total.sulfur.dioxide)) + 
-  geom_point(aes(color = sulphates),alpha=0.3) +
+  geom_point(aes(color = sulphates)) +
   geom_smooth(method = 'lm', color='red') + 
   scale_fill_gradientn(colours = terrain.colors(10)) + 
-  facet_wrap( ~ quality,ncol = 3)
+  ylim(0, 400) +
+  xlim(0, 100) +
+  facet_wrap( ~ premium,ncol = 3)
 ```
+
+## 多变量图例说明
+
+1.  quality 在区间[3,6]时明显集中在左下侧，从7开始向右上偏移。 sulphates 未知，将在下图进行具体分析
+2.  限定 x 与 y 轴过滤部分异常值后，free.sulfur.dioxide 与 total.sulfur.dioxide 分布在各数值的 premium 没有明显变化，sulphates 在品质较高中可以看出占比越来越高
 
 # 多变量分析
 
@@ -326,12 +363,13 @@ corrplot(cor(wine))
 ```{r echo=FALSE, Plot_Two}
 ggplot(data = wine, aes(x = alcohol, y = density, 
                         color = factor(quality))) +
-  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  geom_jitter(alpha = 0.2) +
   geom_smooth(method = 'lm', se = FALSE, size = 1) +
-  scale_color_brewer(palette = 'Set2') +
-  ggtitle('Alcohol vs Density')+
+  scale_color_brewer(palette = "Blues") +
+  ylim(0.985, 1.005) +
+  ggtitle('Alcohol vs Density vs Quality')+
   ylab('Density') +
-  xlab('Alcohol')+
+  xlab('Alcohol') +
   theme(legend.text = element_text(size=10),
         legend.title = element_text(size=10)) + 
   theme(legend.position = "right")
@@ -353,7 +391,7 @@ varImportance <- data.frame(Variables = row.names(importance),
 
 # Create a rank variable based on importance
 rankImportance <- varImportance %>%
-  mutate(Rank = paste0('#',dense_rank(desc(Importance))))
+  mutate(Rank = paste0('#', dense_rank(desc(Importance))))
 
 # Use ggplot2 to visualize the relative importance of variables
 ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
@@ -372,4 +410,4 @@ ggplot(rankImportance, aes(x = reorder(Variables, Importance),
 
 # 反思
 
-用单变量、双变量及多变量通过相关关系分析酒的品质是如何成因的话有些片面，之后通过机器学习模型对求证结果进行反推，会发现有很多不足，还需要进一步加强
+用单变量、双变量及多变量通过相关关系分析酒的品质是如何成因的话有些片面，之后通过随机森林模型对求证结果进行反推，会发现有很多不足，还需要进一步加强。主要因为数据集的规模还不够大，并且 quality 为8与9的数据太少，所以新建了一个叫做 premium 的变量，囊括了quality 为7，8，9的数据，进行统合分析。如果有可能的话，将来会引进更多机器学习模型，对分析结果再审视一遍。
