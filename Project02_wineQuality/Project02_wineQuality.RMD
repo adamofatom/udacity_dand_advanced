@@ -48,6 +48,7 @@ str(wq)
 summary(wq)
 head(wq)
 wine <- wq[,-1]  # 删除无用列
+
 ```
 
 # 各变量之间相关性查看1
@@ -67,24 +68,10 @@ ggpairs(wine_samp,
 corrplot(cor(wq[,  -1]))
 ```
 
-# 单变量图例说明
-
-1.  quality 呈正态分布
-2.  alcohol 总体分布在9到11.5左右
-3.  pH 呈正态分布
-4.  多数 residual.sugar 并不高
-5.  fixed.acidity 呈正态分布
-6.  chlorides 分布于0.22至0.06之间
-7.  free.sulfur.dioxide 呈正态分布，有少量异常值
-8.  total.sulfur.dioxide 呈正态分布，异常值并不多
-9.  bound.sulfur.dioxide 呈正态分布
-10. 高品质 premium （quality 为7,8,9）占少量，约为普通酒的四分之一
 
 # 单变量绘图选择
-```{r echo=FALSE, Univariate_Plots}
-# 添加优质酒列，quality为7~9的白葡萄酒
+```{r echo=FALSE, Univariate_Plots1}
 wine$premium <- ifelse(wine$quality > 6, 1,0)
-
 # 创建 bound.sulfur.dioxide
 wine$bound.sulfur.dioxide <- 
   wine$total.sulfur.dioxide - 
@@ -96,49 +83,97 @@ histogram_plot <- function(para, width, title) {
   geom_histogram(binwidth = width) + 
   ggtitle(title)
 }
+```
+
+```{r echo=FALSE, Univariate_Plots2}
 # quality 分布
 histogram_plot('quality', 1, 
                'quality 分布')
+```
 
+*    quality 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots3}
 # alcohol 分布
 histogram_plot('alcohol', 0.1, 
                'alcohol 分布')
+```
 
+*    alcohol 总体分布在9到11.5左右
+
+```{r echo=FALSE, Univariate_Plots4}
 # pH 分布
 histogram_plot('pH', 0.01, 'pH 分布') +
   xlim((floor(min(wine$pH))), ceiling(max(wine$pH)))
+```
 
+*    pH 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots5}
 # residual.sugar 分布
 # it's rare to find wines with less than 1 gram/liter 
 # and wines with greater than 45 grams/liter are considered sweet
 histogram_plot('residual.sugar', 0.1, 
                'residual.sugar 分布')
+```
 
+*    多数 residual.sugar 并不高
+
+```{r echo=FALSE, Univariate_Plots6}
 # fixed acidity 分布
 histogram_plot('fixed.acidity', 0.1, 
                'fixed acidity 分布')
+```
 
+*    fixed.acidity 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots7}
+# citric.acid
+histogram_plot('citric.acid', 0.05,
+               'citric.acid 分布')
+```
+
+*    citric.acid 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots8}
 # chlorides分布
 histogram_plot('chlorides', 0.01, 
                'chlorides分布')
+```
 
+*    citric.acid 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots9}
 # free.sulfur.dioxide 分布
 histogram_plot('free.sulfur.dioxide', 1, 
                'free.sulfur.dioxide 分布')
+```
 
+*    free.sulfur.dioxide 呈正态分布，有少量异常值
+
+```{r echo=FALSE, Univariate_Plots10}
 # total.sulfur.dioxide 分布
 histogram_plot('total.sulfur.dioxide', 1, 
                'total.sulfur.dioxide 分布')
+```
 
+*    total.sulfur.dioxide 呈正态分布，异常值并不多
+
+```{r echo=FALSE, Univariate_Plots11}
 # bound.sulfur.dioxide 分布
 histogram_plot('bound.sulfur.dioxide', 1,
                'bound.sulfur.dioxide 分布')
+```
 
+*    bound.sulfur.dioxide 呈正态分布
+
+```{r echo=FALSE, Univariate_Plots12}
 # premium 分布
 histogram_plot('premium', 1,
                'premium 分布')
-
 ```
+
+*    高品质 premium （quality 为7,8,9）占少量，约为普通酒的四分之一
 
 
 # 单变量分析
@@ -167,16 +202,9 @@ pH，sulphates，alcohol，quality
 未见异常
 
 
-# 双变量图例说明1
-
-1.  大量酒的 chlorides 随着quality 上身而下降
-2.  此处 residual.sugar 有大量异常值，即便缩小范围，依然没有发现相应规律
-3.  citric.acid 与quality 无明显关系，在下面分析中会进一步拓展
-4.  fixed.acidity 与 citric.acid 对 pH影响较大，相对应的 citric.acid对 pH 影响就几乎没有
-5.  随着度数增加，quality 比例增加
 
 # 双变量绘图选择
-```{r echo=FALSE, Bivariate_Plots_1}
+```{r echo=FALSE, Bivariate_Plots1}
 # alcohol 与 quality 的关系
 ggplot(data = wine, aes(factor(quality), chlorides)) +
   geom_jitter( alpha = 0.3)  +
@@ -184,21 +212,33 @@ ggplot(data = wine, aes(factor(quality), chlorides)) +
   coord_cartesian(ylim = c(0.01, 0.101)) +
   xlab("Quality") +
   ylab("Chlorides")
+```
 
+*    大量酒的 chlorides 随着quality 上身而下降
+
+```{r echo=FALSE, Bivariate_Plots2}
 # residual.sugar 与 quality 的关系
 ggplot(data = wine, aes(factor(quality), residual.sugar)) +
   geom_boxplot() +
   xlab("Quality") +
   ylab("Residual Sugar") +
   ylim(0, 20)
+```
 
+*    此处 residual.sugar 有大量异常值，即便缩小范围，依然没有发现相应规律
+
+```{r echo=FALSE, Bivariate_Plots3}
 # citric.acid 与 quality 的关系
 ggplot(data = wine, aes(x = factor(quality), y = citric.acid)) +
-  geom_jitter(alpha=1/5) +
+  geom_jitter(alpha = 0.2) +
   xlab("Quality") +
   ylab("Citric Acid") +
   geom_smooth(method = 'lm')
+```
 
+*    citric.acid 与quality 无明显关系，在下面分析中会进一步拓展
+
+```{r echo=FALSE, Bivariate_Plots4}
 # pH 与 葡萄酒含有的酸的关系
 # p1 为 fixed.acidity
 p1 <- ggplot(data = wine, aes(x = fixed.acidity, y = pH)) +
@@ -216,13 +256,19 @@ p3 <- ggplot(data = wine, aes(x = citric.acid, y = pH)) +
   geom_smooth(method = 'lm', color='red')
 
 grid.arrange(p1, p2, p3, ncol=3)
+```
 
-ggplot(data = wine, aes(x = alcohol, color = factor(quality), 
+*    fixed.acidity 与 citric.acid 对 pH影响较大，相对应的 citric.acid对 pH 影响就几乎没有
+
+```{r echo=FALSE, Bivariate_Plots5}
+ggplot(data = wine, aes(x = alcohol, 
                         fill = factor(quality))) + 
   geom_histogram(position = position_stack(reverse = TRUE), 
-                 alpha = 0.5, binwidth = 0.2) +
-  scale_color_brewer(palette = "Blues")
+                 binwidth = 0.2) +
+  scale_fill_brewer(palette = 'Blues')
 ```
+
+*    随着度数增加，quality 比例增加
 
 
 ```{r echo=FALSE}
@@ -233,17 +279,17 @@ with(wine, cor.test(quality, citric.acid))
 
 with(wine, cor.test(total.sulfur.dioxide, sulphates))
 ```
-```{r echo=FALSE, Bivariate_Plots_2}
+
+```{r echo=FALSE, Bivariate_Plots6}
 # 绘图也是显示柠檬酸与品质并无多大关系，两者分布差不多
 histogram_plot('citric.acid', 0.01, 'citric.acid 与 premium') +
   facet_wrap(~ premium, ncol = 2)
 ```
 
-## 双变量图例说明2
 
-绘图也显示柠檬酸与品质并无多大关系，两者分布差不多
+*    绘图也显示柠檬酸与品质并无多大关系，两者分布差不多
 
-```{r echo=FALSE, Bivariate_Plots_3}
+```{r echo=FALSE, Bivariate_Plots8}
 # 酒精度数与品质的多维展示
 ggplot(data = wine, aes(x = quality, y = alcohol, color = ..x..)) +
   geom_jitter(alpha = 0.3) +
@@ -258,7 +304,11 @@ ggplot(data = wine, aes(x = quality, y = alcohol, color = ..x..)) +
             fun.args = list(probs = .9),
             linetype = 2,color = "blue") +
   scale_fill_gradient("Quality", low = "green", high = "blue")
+```
 
+*    按照分批量对 quality 与 alcohol 的关系进行平均可以看到 quality 越高，alcohol 也越高
+
+```{r echo=FALSE, Bivariate_Plots9}
 ggplot(data = wine, aes(factor(quality), 
                         alcohol, color = ..x..)) + 
   geom_jitter(alpha = 0.3) +
@@ -269,13 +319,9 @@ ggplot(data = wine, aes(factor(quality),
   scale_fill_gradient("Quality", low = "green", high = "blue")
 ```
 
-## 双变量图例说明3
+*    在此基础上再描绘一条线性模型，可以更直观的看到以上关系
 
-1.  按照分批量对 quality 与 alcohol 的关系进行平均可以看到 quality 越高，alcohol 也越高
-2.  在此基础上再描绘一条线性模型，可以更直观的看到以上关系
-
-
-```{r echo=FALSE, Bivariate_Plots_4}
+```{r echo=FALSE, Bivariate_Plots10}
 # 挥发性酸与品质的多维展示
 ggplot(data = wine, aes(x = quality, y = volatile.acidity,
                         color=..x..)) + 
@@ -295,9 +341,7 @@ ggplot(data = wine, aes(x = quality, y = volatile.acidity,
 
 ```
 
-## 双变量图例说明4
-
-volatile.acid 对于 quality 较高时影响较大
+*    volatile.acid 对于 quality 较高时影响较大
 
 # 双变量分析
 
@@ -319,13 +363,17 @@ alcohol 与 density 强相关
 
 # 多变量绘图选择
 
-```{r echo=FALSE, Multivariate_Plots}
+```{r echo=FALSE, Multivariate_Plots1}
 # volatile.acidity 、 alcohol 、 sulphates 与 quality 多变量关系图
 ggplot(data = wine, aes(x = volatile.acidity, y = alcohol)) +
   geom_point(aes(color = sulphates)) +
   facet_wrap( ~ quality, ncol = 3, scales = "free") +
   scale_fill_gradientn(colours = terrain.colors(10)) 
+```
 
+*    quality 在区间[3,6]时明显集中在左下侧，从7开始向右上偏移。 sulphates 未知，将在下图进行具体分析
+
+```{r echo=FALSE, Multivariate_Plots2}
 # free.sulfur.dioxide 、 total.sulfur.dioxide 、 sulphates 与 quality 多变量关系图
 ggplot(data = wine, aes(x = free.sulfur.dioxide,
                         y = total.sulfur.dioxide)) + 
@@ -337,10 +385,48 @@ ggplot(data = wine, aes(x = free.sulfur.dioxide,
   facet_wrap( ~ premium,ncol = 3)
 ```
 
-## 多变量图例说明
+*    限定 x 与 y 轴过滤部分异常值后，free.sulfur.dioxide 与 total.sulfur.dioxide 分布在各数值的 premium 没有明显变化，sulphates 在品质较高中可以看出占比越来越高
 
-1.  quality 在区间[3,6]时明显集中在左下侧，从7开始向右上偏移。 sulphates 未知，将在下图进行具体分析
-2.  限定 x 与 y 轴过滤部分异常值后，free.sulfur.dioxide 与 total.sulfur.dioxide 分布在各数值的 premium 没有明显变化，sulphates 在品质较高中可以看出占比越来越高
+```{r echo=FALSE, Multivariate_Plots3}
+ggplot(data = wine, aes(x = alcohol, y = density, 
+                        color = factor(quality))) +
+  geom_jitter() +
+  geom_smooth(method = 'lm', se = FALSE, size = 1) +
+  scale_color_brewer(palette = "Blues") +
+  ylim(0.985, 1.005) +
+  ggtitle('Alcohol vs Density vs Quality')+
+  ylab('Density') +
+  xlab('Alcohol') +
+  theme(legend.text = element_text(size=10),
+        legend.title = element_text(size=10))
+
+
+```
+
+*    density 与 alcohol 根据斜率可以看出明显负相关，alcohol 增大时 quality 高的出现的频率变大
+
+```{r echo=FALSE, Multivariate_Plots4}
+wineRF <- randomForest(data = wq[, -1], factor(quality) ~ ., ntree = 150)
+
+importance    <- importance(wineRF)
+varImportance <- data.frame(Variables = row.names(importance), 
+                            Importance = round(importance[ ,'MeanDecreaseGini'],2))
+
+# Create a rank variable based on importance
+rankImportance <- varImportance %>%
+  mutate(Rank = paste0('#', dense_rank(desc(Importance))))
+
+# Use ggplot2 to visualize the relative importance of variables
+ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
+                           y = Importance, fill = Importance)) +
+  geom_bar(stat = 'identity') + 
+  geom_text(aes(x = Variables, y = 0.5, label = Rank),
+            hjust=0, vjust=0.55, size = 4, colour = 'red') +
+  labs(x = 'Variables') +
+  coord_flip()
+```
+
+*    调用随机森林模型，将所有变量输入进行模拟，可以看到酒精对于 quality 权重最大。
 
 # 多变量分析
 
