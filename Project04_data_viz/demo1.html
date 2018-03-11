@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+</style>
+<head>
+    <script src="http://d3js.org/d3.v4.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.3.0.min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var svg = dimple.newSvg("body", 800, 600);
+        d3.csv("baseball_data.csv", function(data) {
+            var myChart = new dimple.chart(svg, data);
+            myChart.setBounds(60, 60, 510, 330);
+            var x = myChart.addCategoryAxis("x", "handedness");
+            var y = myChart.addMeasureAxis("y", "HR");
+            var s = myChart.addSeries("handedness", dimple.plot.bar);
+            s.aggregate = dimple.aggregateMethod.avg;
+            myChart.draw();})
+    </script>
+</body>
