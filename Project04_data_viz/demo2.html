@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-</style>
 <head>
     <script src="http://d3js.org/d3.v4.min.js"></script>
     <script src="http://dimplejs.org/dist/dimple.v2.3.0.min.js"></script>
@@ -10,12 +8,24 @@
     <script type="text/javascript">
         var svg = dimple.newSvg("body", 800, 600);
         d3.csv("baseball_data.csv", function(data) {
+            var indicator = new dimple.chart(svg, data);
+            var defaultColor = indicator.defaultColors[0];
+            var indicatorColor = indicator.defaultColors[2];
+
+            var frame = 2000;
+
+            var firstClick = true;
+            indicator.setBounds(600, 50, 153, 311);
+            
             var myChart = new dimple.chart(svg, data);
             myChart.setBounds(60, 60, 510, 330);
             var x = myChart.addCategoryAxis("x", "handedness");
             var y = myChart.addMeasureAxis("y", "HR");
             var s = myChart.addSeries("handedness", dimple.plot.bar);
             s.aggregate = dimple.aggregateMethod.avg;
+            s.addEventHandler("click", function(e){
+                console.log(e.seriesValue);
+            })
             myChart.draw();})
     </script>
 </body>

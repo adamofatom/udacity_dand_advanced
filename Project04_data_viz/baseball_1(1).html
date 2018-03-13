@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+      <meta charset="utf-8">
+      <script src="http://d3js.org/d3.v3.min.js"></script>
+      <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  </head>
+  <body>
+    <div align='center'>
+      <h1> The influence of handness on player performance.</h1>
+    </div>
+    <script type="text/javascript">
+      function draw(data) {
+          var svg = dimple.newSvg("body", 1100, 1200);
+      
+          var myChart = new dimple.chart(svg, data);
+          myChart.setBounds(80, 40, 800, 480)
+          
+          // 通过avg和HR分别为x、y轴创建bubble图
+          // 
+          myChart.addMeasureAxis("x", "avg")
+          .title = "Batting Average(avg)"
+
+          myChart.addMeasureAxis("y", "HR")
+          .title = "Home Runs(HR)"
+          
+          myChart.addSeries(['name', "handedness"], dimple.plot.bubble);
+          var myLegend=myChart.addLegend(550, 120, 400, 300, "Right");
+          myChart.draw();
+        
+          // By doing this we orphan the legend. This
+          // means it will not respond to graph updates.  Without this the legend
+          // will redraw when the chart refreshes removing the unchecked item and
+          // also dropping the events we define below.
+          myChart.legends = []
+          
+          // This block simply adds the legend title. I put it into a d3 data
+          // object to split it onto 2 lines.  This technique works with any
+          // number of lines, it isn't dimple specific.
+          svg.selectAll("title_text")
+          .data(["Click legend to","show/hide handedness:"])
+          .enter()
+          .append("text")
+            .attr("x", 820)
+            .attr("y", function (d, i) { return 90 + i * 14; })
+            .style("font-family", "sans-serif")
+            .style("font-size", "10px")
+            .style("color", "Black")
+            .text(function (d) { return d; });
+          
+          // Get a unique list of Owner values to use when filtering
+          var filterValues = dimple.getUniqueValues(data, "handedness");
+          // Get all the rectangles from our now orphaned legend
+          myLegend.shapes.selectAll("rect")
+          // Add a click event to each rectangle
+          .on("click", function (e) {
+            // This indicates whether the item is already visible or not
+            var hide = false;
+            var newFilters = [];
+            // If the filters contain the clicked shape hide it
+            filterValues.forEach(function (f) {
+              if (f === e.aggField.slice(-1)[0]) {
+                hide = true;
+              } else {
+                newFilters.push(f);
+              }
+            });
+            // Hide the shape or show it
+            if (hide) {
+              d3.select(this).style("opacity", 0.2);
+            } else {
+              newFilters.push(e.aggField.slice(-1)[0]);
+              d3.select(this).style("opacity", 0.8);
+            }
+            // Update the filters
+            filterValues = newFilters;
+            // Filter the data
+            myChart.data = dimple.filterData(data, "handedness", filterValues);
+            // Passing a duration parameter makes the chart animate. Without
+            // it there is no transition
+            myChart.draw(800);
+          });
+        };
+    </script>
+  
+  </body>
+  <script type="text/javascript">
+  /*
+    Use D3 (not dimple.js) to load the TSV file
+    and pass the contents of it to the draw function
+    */
+    d3.csv("baseball_data.csv", function(d) {
+      // transform data
+      d['avg'] = +d['avg'];
+      d['HR'] = +d['HR'];
+      return d;
+  }, draw);
+  </script>
+</html>
