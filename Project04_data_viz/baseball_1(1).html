@@ -26,7 +26,7 @@
           .title = "Home Runs(HR)"
           
           myChart.addSeries(['name', "handedness"], dimple.plot.bubble);
-          var myLegend=myChart.addLegend(550, 120, 400, 300, "Right");
+          var myLegend=myChart.addLegend(650, 120, 400, 300, "Right");
           myChart.draw();
         
           // By doing this we orphan the legend. This
@@ -42,7 +42,7 @@
           .data(["Click legend to","show/hide handedness:"])
           .enter()
           .append("text")
-            .attr("x", 820)
+            .attr("x", 920)
             .attr("y", function (d, i) { return 90 + i * 14; })
             .style("font-family", "sans-serif")
             .style("font-size", "10px")

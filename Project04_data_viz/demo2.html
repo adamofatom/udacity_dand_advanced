@@ -1,31 +1,88 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<html>
+
 <head>
-    <script src="http://d3js.org/d3.v4.min.js"></script>
-    <script src="http://dimplejs.org/dist/dimple.v2.3.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
 </head>
+
 <body>
     <script type="text/javascript">
-        var svg = dimple.newSvg("body", 800, 600);
-        d3.csv("baseball_data.csv", function(data) {
-            var indicator = new dimple.chart(svg, data);
-            var defaultColor = indicator.defaultColors[0];
-            var indicatorColor = indicator.defaultColors[2];
+        d3.csv("baseball_data.csv", function draw(data) {
+            var svg = dimple.newSvg("body", 1100, 800);
 
-            var frame = 2000;
-
-            var firstClick = true;
-            indicator.setBounds(600, 50, 153, 311);
-            
             var myChart = new dimple.chart(svg, data);
-            myChart.setBounds(60, 60, 510, 330);
-            var x = myChart.addCategoryAxis("x", "handedness");
-            var y = myChart.addMeasureAxis("y", "HR");
-            var s = myChart.addSeries("handedness", dimple.plot.bar);
-            s.aggregate = dimple.aggregateMethod.avg;
-            s.addEventHandler("click", function(e){
-                console.log(e.seriesValue);
-            })
-            myChart.draw();})
+            myChart.setBounds(80, 40, 800, 480)
+
+            myChart.addMeasureAxis("x", "avg")
+
+            myChart.addMeasureAxis("y", "HR")
+
+            myChart.addSeries(['name', "handedness"], dimple.plot.bubble);
+            var myLegend = myChart.addLegend(650, 120, 400, 300, "Right");
+            myChart.draw();
+
+            // By doing this we orphan the legend. This
+            // means it will not respond to graph updates.  Without this the legend
+            // will redraw when the chart refreshes removing the unchecked item and
+            // also dropping the events we define below.
+            myChart.legends = []
+
+            // This block simply adds the legend title. I put it into a d3 data
+            // object to split it onto 2 lines.  This technique works with any
+            // number of lines, it isn't dimple specific.
+            svg.selectAll("title_text")
+                .data(["点击图标选择查看相应的惯用手"])
+                .enter()
+                .append("text")
+                .attr("x", 920)
+                .attr("y", function (d, i) {
+                    return 110 + i * 14;
+                })
+                .style("font-family", "sans-serif")
+                .style("font-size", "10px")
+                .style("color", "Black")
+                .text(function (d) {
+                    return d;
+                });
+
+            // Get a unique list of Owner values to use when filtering
+            var filterValues = dimple.getUniqueValues(data, "handedness");
+            // Get all the rectangles from our now orphaned legend
+            myLegend.shapes.selectAll("rect")
+                // Add a click event to each rectangle
+                .on("click", function (e) {
+                    // This indicates whether the item is already visible or not
+                    var hide = false;
+                    var newFilters = [];
+                    // If the filters contain the clicked shape hide it
+                    filterValues.forEach(function (f) {
+                        if (f === e.aggField.slice(-1)[0]) {
+                            hide = true;
+                        } else {
+                            newFilters.push(f);
+                        }
+                    });
+                    // Hide the shape or show it
+                    if (hide) {
+                        d3.select(this).style("opacity", 0.2);
+                    } else {
+                        newFilters.push(e.aggField.slice(-1)[0]);
+                        d3.select(this).style("opacity", 0.8);
+                    }
+                    // Update the filters
+                    filterValues = newFilters;
+                    // Filter the data
+                    myChart.data = dimple.filterData(data, "handedness", filterValues);
+                    // Passing a duration parameter makes the chart animate. Without
+                    // it there is no transition
+                    myChart.draw(800);
+                });
+        });
     </script>
+
 </body>
+
+</html>

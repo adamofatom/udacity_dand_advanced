@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 After auditing is complete the next step is to prepare the data to be inserted into a SQL database.
 To do so you will parse the elements in the OSM XML file, transforming them from document format to
@@ -178,41 +177,46 @@ PROBLEMCHARS = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 SCHEMA = schema.schema
 
 # Make sure the fields order in the csvs matches the column order in the sql table schema
-NODE_FIELDS = ['id', 'lat', 'lon', 'user', 'uid', 'version', 'changeset', 'timestamp']
+NODE_FIELDS = [
+    'id', 'lat', 'lon', 'user', 'uid', 'version', 'changeset', 'timestamp'
+]
 NODE_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_FIELDS = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
 WAY_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_NODES_FIELDS = ['id', 'node_id', 'position']
 
 
-def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIELDS,
-                  problem_chars=PROBLEMCHARS, default_tag_type='regular'):
+def shape_element(element,
+                  node_attr_fields=NODE_FIELDS,
+                  way_attr_fields=WAY_FIELDS,
+                  problem_chars=PROBLEMCHARS,
+                  default_tag_type='regular'):
     """Clean and shape node or way XML element to Python dict"""
 
     node_attribs = {}
     way_attribs = {}
     way_nodes = []
-    tags = []  # Handle secondary tags the same way for both node and way elements
+    tags = [
+    ]  # Handle secondary tags the same way for both node and way elements
 
     # YOUR CODE HERE
     if element.tag == 'node':
         for field in node_attr_fields:
-            node_attribs[field]=element.attrib[field]
+            node_attribs[field] = element.attrib[field]
         for m in element.iter("tag"):
             for n in ['k', 'v']:
-                temp[field]=tag.attrib[field]
+                temp[field] = tags.attrib[field]
             tags.append(temp)
         return {'node': node_attribs, 'node_tags': tags}
     elif element.tag == 'way':
         for field in way_attr_fields:
-            way_attribs[field]=element.attrib[field]
+            way_attribs[field] = element.attrib[field]
         for tag in element.iter("tag"):
-            temp={}
+            temp = {}
             for field in ['k', 'v']:
-                temp[field]=tag.attrib[field]
+                temp[field] = tag.attrib[field]
             tags.append(temp)
         return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
-    
 
 
 # ================================================== #
@@ -235,7 +239,7 @@ def validate_element(element, validator, schema=SCHEMA):
         field, errors = next(validator.errors.iteritems())
         message_string = "\nElement of type '{0}' has the following errors:\n{1}"
         error_string = pprint.pformat(errors)
-        
+
         raise Exception(message_string.format(field, error_string))
 
 
@@ -244,7 +248,8 @@ class UnicodeDictWriter(csv.DictWriter, object):
 
     def writerow(self, row):
         super(UnicodeDictWriter, self).writerow({
-            k: (v.encode('utf-8') if isinstance(v, unicode) else v) for k, v in row.iteritems()
+            k: (v.encode('utf-8') if isinstance(v, unicode) else v)
+            for k, v in row.iteritems()
         })
 
     def writerows(self, rows):
