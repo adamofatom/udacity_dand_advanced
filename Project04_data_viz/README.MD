@@ -1,13 +1,16 @@
 # Demo1
 思路：根据惯用手查看远动员的身高体重分布
 
-同学反馈：看不出有何实际意义，而且没有关联到数据里的 HR 和 avg
+同学反馈：数据太多，能否做个分类
 
 # Demo2
-思路：着重添加更多信息
+思路：进行数据分类
 
-同学反馈：
+同学反馈：分类有了，那么还是没有关联到其他数据，比如 avg 和 HR
 
 参考：
 
-[dimple advanced examples]()
+[dimple advanced examples](http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends)
+
+# Demo3
+思路：引入跟多变量，使得图标更富有意义
