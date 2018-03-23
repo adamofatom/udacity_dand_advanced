@@ -14,12 +14,17 @@
             var myChart = new dimple.chart(svg, data);
             myChart.setBounds(80, 40, 800, 480);
             var x = myChart.addMeasureAxis("x", "height");
-            x.overrideMin = 60;
+            x.overrideMin = 60; 
             var y = myChart.addMeasureAxis("y", "weight");
+            var z = myChart.addMeasureAxis("z", "HR");
 
-            myChart.addSeries(['name', "handedness"], dimple.plot.bubble);
+
+            var bubble = myChart.addSeries(['name', "handedness"], dimple.plot.bubble);
+            
+
             var myLegend = myChart.addLegend(650, 120, 400, 300, "Right");
             myChart.draw();
+                // .attr("r", function(d){return Math.sqrt(d["HR"]+1)});
             // By doing this we orphan the legend. This
             // means it will not respond to graph updates.  Without this the legend
             // will redraw when the chart refreshes removing the unchecked item and

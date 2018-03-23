@@ -13,4 +13,6 @@
 [dimple advanced examples](http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends)
 
 # Demo3
-思路：引入跟多变量，使得图标更富有意义
+思路：HR 和 avg 不可同时参与，所以选择加一个分类选择
+
+[dimple](https://codepen.io/Alessandro-Commodari/pen/MmxBXL)
