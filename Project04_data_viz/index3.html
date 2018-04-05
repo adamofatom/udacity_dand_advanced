@@ -69,7 +69,11 @@
 
             var myLegend = myChart.addLegend(650, 120, 400, 300, "Right");
             myChart.draw();
-            // .attr("r", function(d){return Math.sqrt(d["HR"]+1)});
+
+            // x.extent(60, 80);
+            z.shapes.selectAll("circle")
+                .attr("r", function(d){return Math.sqrt(d)});
+
             // By doing this we orphan the legend. This
             // means it will not respond to graph updates.  Without this the legend
             // will redraw when the chart refreshes removing the unchecked item and

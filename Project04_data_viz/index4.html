@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.3.0.min.js"></script>
+    <script src="./js/d3.legend.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <style>
+        .chart rect {
+            fill: steelblue;
+        }
+
+        .chart rect:hover {
+            fill: turquoise;
+        }
+
+        .chart .rectM {
+            stroke: green;
+            stroke-width: 1;
+            fill: green;
+            fill-opacity: .2;
+        }
+
+        .chart .rectM:hover {
+            fill: green;
+            fill-opacity: .5;
+        }
+
+        .chart text {
+            font: 10px sans-serif;
+        }
+
+        .chart .title {
+            font: 15px sans-serif;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        .title {
+            text-align: center;
+            display: block;
+        }
+
+        .legend {
+            font-size: 12px;
+        }
+
+        rect {
+            stroke-width: 2;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="trends-chart gd-xs-12 gd-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading ">
+                    <span class="title" title="Test" align="center">棒球队员惯用手的表现</span>
+                    <span class="dropdown pull-right">
+                        <span class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-chevron-circle-down" title="Categories" tabindex="0"></i>
+                        </span>
+                        <ul class="dropdown-menu opt">
+                            <li class="dropdown-header">切换HR 与 AVG</li>
+                            <li role="separator" class="divider"></li>
+                            <li class="active hr">
+                                <a href="#">HR</a>
+                            </li>
+                            <li class="avg">
+                                <a href="#">AVG</a>
+                            </li>
+                        </ul>
+
+                    </span>
+
+                </div>
+                <div class="panel-body">
+                    <div id="chartContainer" class="container-fluid no-padding text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function draw(data) {
+            var wt = 800;
+            var ht = 600;
+            var margin = 20;
+
+
+            var labelX = 'X(Height)';
+            var labelY = 'Y(Weight)';
+            var svg = d3.select('#chartContainer')
+                .append('svg')
+                .attr('class', 'chart')
+                .attr("width", wt + margin + margin)
+                .attr("height", ht + margin + margin)
+                .append("g")
+                .attr("transform", "translate(" + margin + "," + margin + ")");
+            var myChart = new dimple.chart(svg, data);
+            var x = d3.scale.linear()
+                .domain([d3.min(data, function (d) {
+                    return d["height"];
+                }), d3.max(data, function (d) {
+                    return d["height"];
+                })])
+                .range([0, wt]);
+
+            var y = d3.scale.linear()
+                .domain([d3.min(data, function (d) {
+                    return d["weight"];
+                }), d3.max(data, function (d) {
+                    return d["weight"];
+                })])
+                .range([ht, 0]);
+
+            var rscale = d3.scale.sqrt()
+                .domain([d3.min(data, function (d) {
+                    return d["HR"];
+                }), d3.max(data, function (d) {
+                    return d["HR"];
+                })])
+                .range([1, 20]);
+
+
+            var color = d3.scale.ordinal()
+                .domain(["L", "R", "B"])
+                .range([d3.rgb(128, 177, 211), d3.rgb(251, 128, 114), d3.rgb(253, 180, 98)]);
+
+            var xAxis = d3.svg.axis().scale(x);
+            var yAxis = d3.svg.axis().scale(y).orient("left");
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", 20)
+                .attr("y", -margin)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text(labelY);
+            // x axis and label
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + ht + ")")
+                .call(xAxis)
+                .append("text")
+                .attr("x", wt + 20)
+                .attr("y", margin - 10)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text(labelX);
+
+            svg.selectAll("circle")
+                .data(data)
+                .enter()
+                .insert("circle")
+                .attr("cx", wt / 2)
+                .attr("cy", ht / 2)
+                .attr("opacity", 0.4)
+                .attr("r", function (d) {
+                    return rscale(d["HR"]);
+                })
+                .style("fill", function (d) {
+                    return color(d["handedness"]);
+                })
+                .transition()
+                .delay(function (d, i) {
+                    return x(d["height"]) - y(d["weight"]);
+                })
+                .duration(500)
+                .attr("cx", function (d) {
+                    return x(d["height"]);
+                })
+                .attr("cy", function (d) {
+                    return y(d["weight"]);
+                })
+                .ease("bounce");
+
+            var legendRectSize = 18;
+            var legendSpacing = 4;
+            var legend = svg.selectAll('.legend')
+                .data(color.domain())
+                .enter()
+                .append('g')
+                .attr('class', 'legend')
+                .attr('transform', function (d, i) {
+                    var height = legendRectSize + legendSpacing;
+                    var offset = height * color.domain().length / 2;
+                    var horz = -2 * legendRectSize + 800;
+                    var vert = i * height - offset+50;
+                    return 'translate(' + horz + ',' + vert + ')';
+                });
+
+            legend.append('rect') 
+                .attr('width', legendRectSize) 
+                .attr('height', legendRectSize)
+                .style('fill', color)
+                .style('stroke', color);
+
+            legend.append('text')
+                .attr('x', legendRectSize + legendSpacing)
+                .attr('y', legendRectSize - legendSpacing)
+                .text(function (d) {
+                    return d;
+                });
+
+            // Get a unique list of Owner values to use when filtering
+            var filterValues = dimple.getUniqueValues(data, "handedness");
+            // Get all the rectangles from our now orphaned legend
+            legend.selectAll("rect")
+                // Add a click event to each rectangle
+                .on("click", function (e) {
+                    // This indicates whether the item is already visible or not
+                    var hide = false;
+                    var newFilters = [];
+                    // If the filters contain the clicked shape hide it
+                    filterValues.forEach(function (f) {
+                        if (f === e.aggField.slice(-1)[0]) {
+                            hide = true;
+                        } else {
+                            newFilters.push(f);
+                        }
+                    });
+                    // Hide the shape or show it
+                    if (hide) {
+                        d3.select(this).style("opacity", 0.2);
+                    } else {
+                        newFilters.push(e.aggField.slice(-1)[0]);
+                        d3.select(this).style("opacity", 0.8);
+                    }
+                    // Update the filters
+                    filterValues = newFilters;
+                    // Filter the data
+                    myChart.data = dimple.filterData(data, "handedness", filterValues);
+                    // Passing a duration parameter makes the chart animate. Without
+                    // it there is no transition
+                    myChart.draw(800);
+                });
+        };
+    </script>
+    <script>
+        d3.csv("baseball_data.csv", function (d) {
+            // transform data
+            d['avg'] = +d['avg'];
+            d['HR'] = +d['HR'];
+            return d;
+        }, draw);
+    </script>
+</body>
+
+</html>
