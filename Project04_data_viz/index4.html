@@ -128,11 +128,19 @@
                 })])
                 .range([ht, 0]);
 
-            var rscale = d3.scale.sqrt()
+            var rscale_hr = d3.scale.sqrt()
                 .domain([d3.min(data, function (d) {
                     return d["HR"];
                 }), d3.max(data, function (d) {
                     return d["HR"];
+                })])
+                .range([1, 20]);
+
+            var rscale_avg = d3.scale.pow(0.1)
+                .domain([d3.min(data, function (d) {
+                    return d["avg"];
+                }), d3.max(data, function (d) {
+                    return d["avg"];
                 })])
                 .range([1, 20]);
 
@@ -174,7 +182,7 @@
                 .attr("cy", ht / 2)
                 .attr("opacity", 0.4)
                 .attr("r", function (d) {
-                    return rscale(d["HR"]);
+                    return rscale_hr(d["HR"]);
                 })
                 .style("fill", function (d) {
                     return color(d["handedness"]);
@@ -203,12 +211,12 @@
                     var height = legendRectSize + legendSpacing;
                     var offset = height * color.domain().length / 2;
                     var horz = -2 * legendRectSize + 800;
-                    var vert = i * height - offset+50;
+                    var vert = i * height - offset + 50;
                     return 'translate(' + horz + ',' + vert + ')';
                 });
 
-            legend.append('rect') 
-                .attr('width', legendRectSize) 
+            legend.append('rect')
+                .attr('width', legendRectSize)
                 .attr('height', legendRectSize)
                 .style('fill', color)
                 .style('stroke', color);
@@ -219,6 +227,39 @@
                 .text(function (d) {
                     return d;
                 });
+
+            $(".opt li a").click(function (el) {
+                $(".opt li").removeClass("active");
+
+                var $parent = $(this).parent();
+                var $parentNorm = $(this).parent(".hr");
+                var $parentPerf = $(this).parent(".avg");
+
+                if (!$parent.hasClass("active")) {
+                    $parent.addClass("active");
+                }
+                el.preventDefault();
+
+                if ($parentPerf.hasClass("active")) {
+                    svg.selectAll("circle")
+                        .attr("r", function (d) {
+                            if (d["avg"] == 0) {
+                                return 0;
+                            } else {
+                                return rscale_avg(d["avg"]);
+                            }
+                        })
+                } else if ($parentNorm.hasClass("active")) {
+                    svg.selectAll("circle")
+                        .attr("r", function (d) {
+                            if (d["HR"] == 0) {
+                                return 0;
+                            } else {
+                                return rscale_hr(d["HR"]);
+                            }
+                        })
+                }
+            });
 
             // Get a unique list of Owner values to use when filtering
             var filterValues = dimple.getUniqueValues(data, "handedness");
