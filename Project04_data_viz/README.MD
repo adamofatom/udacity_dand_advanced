@@ -21,6 +21,10 @@
 # Demo4
 以 d3.js 重写一遍，改善了每个起泡的透明度，及过滤了部分数据，增加了动画效果
 
+# 结论
+数据集对于身体素质的可参考项有体重、身高和惯用手，可以看到 Home Run 次数多集中于体重、身高中位数的地方，惯用手为右手的最为突出，
+而场均得分这一项因为差距过小，实在难以得出明显的结论
+
 **参考：**
 [D3.js Step by Step: Adding a Legend](http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend)
 [dimple advanced examples](http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends)

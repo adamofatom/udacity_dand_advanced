@@ -77,10 +77,10 @@
                             <li class="dropdown-header">切换HR 与 AVG</li>
                             <li role="separator" class="divider"></li>
                             <li class="active hr">
-                                <a href="#">HR</a>
+                                <a href="#">HR(Home Run 次数)</a>
                             </li>
                             <li class="avg">
-                                <a href="#">AVG</a>
+                                <a href="#">AVG(场均得分)</a>
                             </li>
                         </ul>
 
@@ -97,20 +97,20 @@
 
     <script>
         function draw(data) {
-            var wt = 800;
-            var ht = 600;
+            var wt = 900;
+            var ht = 640;
             var margin = 20;
 
 
-            var labelX = 'X(Height)';
-            var labelY = 'Y(Weight)';
+            var labelX = 'Height (inch)';
+            var labelY = 'Weight (lbs)';
             var svg = d3.select('#chartContainer')
                 .append('svg')
                 .attr('class', 'chart')
                 .attr("width", wt + margin + margin)
-                .attr("height", ht + margin + margin)
+                .attr("height", ht + 3* margin)
                 .append("g")
-                .attr("transform", "translate(" + margin + "," + margin + ")");
+                .attr("transform", "translate(" + (margin+15) + "," + margin + ")");
             var myChart = new dimple.chart(svg, data);
             var x = d3.scale.linear()
                 .domain([d3.min(data, function (d) {
@@ -158,7 +158,7 @@
                 .append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("x", 20)
-                .attr("y", -margin)
+                .attr("y", -margin -14)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text(labelY);
@@ -168,8 +168,8 @@
                 .attr("transform", "translate(0," + ht + ")")
                 .call(xAxis)
                 .append("text")
-                .attr("x", wt + 20)
-                .attr("y", margin - 10)
+                .attr("x", wt +4)
+                .attr("y", margin - 2)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text(labelX);
